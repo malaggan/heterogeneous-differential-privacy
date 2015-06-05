@@ -2,7 +2,7 @@
 
 #include "abstract_user.hpp"
 
-class Clust : virtual public abstract_user {  
+class Clust : public virtual abstract_user {  
     view_t view;
 public:
     explicit Clust(user_id_t me) : abstract_user{me} {}

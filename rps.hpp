@@ -2,11 +2,11 @@
 
 #include "abstract_user.hpp"
 
-class RPS : virtual public abstract_user
+class RPS : public virtual abstract_user
 {
     view_t view;
 public:
-    explicit RPS(user_id_t me, set_t &already_joined); 
+    explicit RPS(user_id_t me, std::unordered_set<RPS*> &already_joined); 
 
     user_id_t RandomNeighbor() const;
 

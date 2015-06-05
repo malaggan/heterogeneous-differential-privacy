@@ -8,7 +8,7 @@
 #include <cassert>
 #include <iostream>
 #include <iomanip>
-RPS::RPS(user_id_t me, set_t &already_joined) 
+RPS::RPS(user_id_t me, std::unordered_set<RPS*> &already_joined) 
     : abstract_user{me}, view{}
 {	
     auto bootstrapPeers = RandomSample(already_joined, viewSize);
@@ -28,7 +28,7 @@ RPS::RPS(user_id_t me, set_t &already_joined)
 	    auto removed = rps_other->RandomReplace(id);
 	    if(view.find(removed) != std::end(view))
 		view[other->id] = 0;
-	    else
+	    else 
 		view[removed] = 0;
 	}
     }
