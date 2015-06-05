@@ -6,7 +6,7 @@ class RPS : public virtual abstract_user
 {
     view_t view;
 public:
-    explicit RPS(user_id_t me, std::unordered_set<RPS*> &already_joined); 
+    explicit RPS(user_id_t me, std::unordered_set<abstract_user*> &already_joined); 
 
     user_id_t RandomNeighbor() const;
 

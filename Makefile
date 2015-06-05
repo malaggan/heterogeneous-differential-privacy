@@ -1,6 +1,8 @@
 default: all
 .PHONY: all
 
+CXX = g++
+
 CXXFLAGS:= -std=c++14 #-mmpx
 LDFLAGS := #-lmpxwrappers
 

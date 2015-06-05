@@ -8,11 +8,11 @@
 #include <cassert>
 #include <iostream>
 #include <iomanip>
-RPS::RPS(user_id_t me, std::unordered_set<RPS*> &already_joined) 
+RPS::RPS(user_id_t me, abstract_user::set_t &already_joined) 
     : abstract_user{me}, view{}
 {	
     auto bootstrapPeers = RandomSample(already_joined, viewSize);
-    already_joined.insert(this);
+    // already_joined.insert(this); // do it from the main. here it does not work and fails to dynamic_cast.
     for(auto const& other : bootstrapPeers)
     {
 	// if the other's RPS view is incomplete, swap selves:
