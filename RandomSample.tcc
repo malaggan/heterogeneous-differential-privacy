@@ -12,8 +12,8 @@
 #  endif
 #endif
 
-#include <random>
-static std::default_random_engine rng{std::random_device{}()};
+#include "Random.hpp"
+std::default_random_engine rng{std::random_device{}()};
 
 template<typename Range>
 auto RandomSample(Range const &range, std::size_t sample_size)

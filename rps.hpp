@@ -6,8 +6,9 @@ class RPS : public abstract_user
 {
 public:
     view_t view;
+    set_t &all_peers;
 
-    explicit RPS(user_id_t me, std::unordered_set<abstract_user*> &already_joined); 
+    explicit RPS(user_id_t me, set_t &already_joined); 
 
     user_id_t RandomNeighbor() const;
 
@@ -15,6 +16,6 @@ public:
     
     void printView() const override;
 
-    void doGossip() override {}
+    void doGossip() override;
     virtual ~RPS() {}
 };

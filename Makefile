@@ -1,5 +1,5 @@
 default: all
-.PHONY: all
+.PHONY: all TAGS
 
 CXX = g++
 

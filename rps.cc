@@ -6,11 +6,11 @@
 #include <iostream>
 #include <iterator>
 #include <cassert>
-#include <iostream>
 #include <iomanip>
 RPS::RPS(user_id_t me, abstract_user::set_t &already_joined) 
-    : abstract_user{me}, view{}
-{	
+    : abstract_user{me}, view{}, all_peers{already_joined}
+{
+    // [1]
     auto bootstrapPeers = RandomSample(already_joined, viewSize);
     // already_joined.insert(this); // do it from the main. here it does not work and fails to dynamic_cast.
     for(auto other : bootstrapPeers)
@@ -56,3 +56,69 @@ auto RPS::RandomReplace(user_id_t id) -> user_id_t {
     view[id] = 0;
     return victim;
 }
+#include <boost/range/algorithm/max_element.hpp>
+auto getOldestPeerInView = [](auto const &view) {
+    return boost::max_element(view,
+			      [](const auto &p1, const auto &p2) {
+				  return p1.second < p2.second;});
+};
+
+#include <deque>
+#include <boost/range/algorithm_ext/erase.hpp>
+#include "Random.hpp"
+void RPS::doGossip() {
+    // [2]
+    // getGossipDest: oldest peer in the RPS view, put it in the front of RPS, then shuffle the rest    
+    auto max = getOldestPeerInView(view)->first;
+    auto range = view | boost::adaptors::map_keys;
+    std::deque<view_t::key_type> neighbors{std::begin(range),std::end(range)};
+    boost::remove_erase(neighbors, max);
+    neighbors.push_front(max);
+    auto second = std::begin(neighbors);
+    std::advance(second, 1);
+    std::shuffle(second, std::end(neighbors), rng);
+    // end getGossipDest
+    // work with `neighbors' now.
+    auto dest = all_peers.find(max);
+    std::shuffle(std::begin(dest->view), std::end(dest->view), rng);
+// shuffle the destination RPS view
+//   loop for i = 0 ; i < viewsiz/2
+//      if i == 0; set vToD to this peer, otherwise to i-th peer in this peer's RPS view
+//      if vToD not already in other peer's RPS view, append it, or set i-th pos if | | = viewSize
+//      else reset time of i-th peer in other peer's RPS ; and make other's peer copy at least as old as  ours
+     
+//      set dToV to i-th peer of other's peer RPS (if exists), or last one if that peer is this peer
+//      append it this peer's RPS (or put it in i-th pos is | | = viewSize) if not existent
+//      otherwise reset time of i-th pos and make my copy at least as old as theirs
+//   increment time stamp for all peers in both RPS views    
+}
+
+/* [1]
+   threadedSim.gossip.rps.RPSGossipInitializer:
+Boostrapping:
+alreadyJoined = empty_set
+for every peer to initialize:
+  bootstrapPeers = random sample from alreadyJoined of size at most viewSize
+  add current peer to alreadyJoined
+      for every booter in bootstrapPeers:
+            if booter's RPS < viewSize: add him to me and add me to him
+        else take a random peer from his RPS and put me instead of it;
+           add this peer to my RPS if not already there, otherwise add the booter himself
+*/
+
+/* [2]
+   threadedSim.gossip.rps.RPSGossipTask:
+doGossip(getGossipDest())
+getGossipDest: oldest peer in the RPS view, put it in the front of RPS, then shuffle the rest
+doGossip:
+  shuffle the destination RPS view
+  loop for i = 0 ; i < viewsiz/2
+     if i == 0; set vToD to this peer, otherwise to i-th peer in this peer's RPS view
+     if vToD not already in other peer's RPS view, append it, or set i-th pos if | | = viewSize
+     else reset time of i-th peer in other peer's RPS ; and make other's peer copy at least as old as  ours
+     
+     set dToV to i-th peer of other's peer RPS (if exists), or last one if that peer is this peer
+     append it this peer's RPS (or put it in i-th pos is | | = viewSize) if not existent
+     otherwise reset time of i-th pos and make my copy at least as old as theirs
+  increment time stamp for all peers in both RPS views
+ */

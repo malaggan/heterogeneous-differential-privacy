@@ -1,16 +1,27 @@
+
 #pragma once
 
 #include <unordered_map>
 #include <unordered_set>
-
+#include <functional>
 constexpr auto viewSize = 10u;
 constexpr auto cycles	= 20u;
 
+// set_t key equality test
+class abstract_user;
+namespace std {
+  template <> struct equal_to<abstract_user*>
+  {
+      bool operator()(const abstract_user* a, const abstract_user* b) const;
+  };
+}
+
+
 class abstract_user {
-public:
+public:  
     using user_id_t	= uint_fast32_t;
     using age_t		= uint_fast32_t;
-    using view_t	= std::unordered_map<user_id_t,age_t>;
+    using view_t	= std::unordered_map<user_id_t,age_t>; 
     using set_t         = std::unordered_set<abstract_user*>; // [1]
 
     user_id_t id;
@@ -22,3 +33,5 @@ public:
 };
     
 // [1] I could have used std::unordered_set<std::shared_ptr<abstract_user>>. I do not because I need to add to this container during construction. The problem is that I would need to inherit from std::enable_shared_from_this<abstract_user>, and then call shared_from_this(). However, it cannot be called during construction, otherwise bad_weak_ptr is thrown.
+
+
