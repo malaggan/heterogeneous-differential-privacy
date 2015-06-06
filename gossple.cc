@@ -6,8 +6,13 @@
 int main()
 {
     abstract_user::set_t joined_peers;
+    RPS::all_t all_peers;
     for(auto i : Range<std::vector, std::size_t>(500))
-	joined_peers.insert(new user{i, joined_peers});
+    {
+	auto peer = new user{i, joined_peers, all_peers};
+	joined_peers.insert(peer);
+	all_peers[i] = peer;
+    }
     for(auto u : joined_peers)
     {
 	auto a = dynamic_cast<RPS*>(u);

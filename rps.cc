@@ -7,8 +7,8 @@
 #include <iterator>
 #include <cassert>
 #include <iomanip>
-RPS::RPS(user_id_t me, abstract_user::set_t &already_joined) 
-    : abstract_user{me}, view{}, all_peers{already_joined}
+RPS::RPS(user_id_t me, set_t &already_joined, all_t &all_peers) 
+    : abstract_user{me}, view{}, all_peers{all_peers}
 {
     // [1]
     auto bootstrapPeers = RandomSample(already_joined, viewSize);
@@ -71,16 +71,19 @@ void RPS::doGossip() {
     // getGossipDest: oldest peer in the RPS view, put it in the front of RPS, then shuffle the rest    
     auto max = getOldestPeerInView(view)->first;
     auto range = view | boost::adaptors::map_keys;
-    std::deque<view_t::key_type> neighbors{std::begin(range),std::end(range)};
-    boost::remove_erase(neighbors, max);
-    neighbors.push_front(max);
-    auto second = std::begin(neighbors);
+    std::deque<view_t::key_type> myview{std::begin(range),std::end(range)};
+    boost::remove_erase(myview, max);
+    myview.push_front(max);
+    auto second = std::begin(myview);
     std::advance(second, 1);
-    std::shuffle(second, std::end(neighbors), rng);
+    std::shuffle(second, std::end(myview), rng);
     // end getGossipDest
-    // work with `neighbors' now.
-    auto dest = all_peers.find(max);
-    std::shuffle(std::begin(dest->view), std::end(dest->view), rng);
+    // work with `myview' now.
+    auto dest = dynamic_cast<RPS*>(all_peers[max]);
+    assert(dest != nullptr);
+    // FIXME: i cannot shuffle the other peer's view since the view_t container does not provide RandomAccessIterator needed by std::shuffle
+    std::deque<view_t::value_type> otherview{std::begin(dest->view), std::end(dest->view)};
+    std::shuffle(std::begin(otherview), std::end(otherview), rng);
 // shuffle the destination RPS view
 //   loop for i = 0 ; i < viewsiz/2
 //      if i == 0; set vToD to this peer, otherwise to i-th peer in this peer's RPS view

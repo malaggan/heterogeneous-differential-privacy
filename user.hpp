@@ -6,7 +6,7 @@
 class user /*final*/ : public Clust<RPS>
 {
 public:
-    explicit user(user_id_t me, abstract_user::set_t &already_joined) : Clust{me, already_joined}
+    explicit user(user_id_t me, set_t &already_joined, all_t &all_peers) : Clust{me, already_joined, all_peers}
     {}
     void doGossip() override {
 	RPS::doGossip();
