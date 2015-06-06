@@ -17,9 +17,7 @@ public:
     explicit abstract_user(user_id_t id) : id{id} {}
 
     virtual void doGossip() = 0; // TODO : remember to user "override" in subclasses
-    virtual void printView() const {}
-    virtual view_t getView() = 0;
-    virtual const view_t getView() const = 0;
+    virtual void printView() const {}    
     virtual ~abstract_user() {}
 };
     

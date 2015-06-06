@@ -2,15 +2,14 @@
 
 #include "abstract_user.hpp"
 
-class Clust : public virtual abstract_user {  
-    view_t view;
+template<typename RPS>
+class Clust : public RPS {  
 public:
-    explicit Clust(user_id_t me) : abstract_user{me} {}
-    
-    void doGossip() override {}
+    typename RPS::view_t view;
 
-    view_t getView() override {return view;}
-    const view_t getView() const override {return view;}
+    explicit Clust(typename RPS::user_id_t me, typename RPS::set_t &already_joined) : RPS{me, already_joined} {}
+    
+    void doGossip() override {}   
 
     virtual ~Clust() {}
 };

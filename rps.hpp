@@ -2,10 +2,11 @@
 
 #include "abstract_user.hpp"
 
-class RPS : public virtual abstract_user
+class RPS : public abstract_user
 {
-    view_t view;
 public:
+    view_t view;
+
     explicit RPS(user_id_t me, std::unordered_set<abstract_user*> &already_joined); 
 
     user_id_t RandomNeighbor() const;
@@ -13,9 +14,6 @@ public:
     user_id_t RandomReplace(user_id_t id);
     
     void printView() const override;
-
-    view_t getView() override {return view;}
-    const view_t getView() const override {return view;}
 
     void doGossip() override {}
     virtual ~RPS() {}

@@ -13,21 +13,21 @@ RPS::RPS(user_id_t me, abstract_user::set_t &already_joined)
 {	
     auto bootstrapPeers = RandomSample(already_joined, viewSize);
     // already_joined.insert(this); // do it from the main. here it does not work and fails to dynamic_cast.
-    for(auto const& other : bootstrapPeers)
+    for(auto other : bootstrapPeers)
     {
+	auto rps_other = dynamic_cast<RPS*>(other);
+	assert(rps_other != nullptr);
 	// if the other's RPS view is incomplete, swap selves:
-	if(other->getView().size() < viewSize)
+	if(rps_other->view.size() < viewSize)
 	{
-	    view[other->id] = 0; // 0 is the age
-	    other->getView()[id] = 0; 
+	    view[rps_other->id] = 0; // 0 is the age
+	    rps_other->view[id] = 0; 
 	}
 	else
-	{
-	    auto rps_other = dynamic_cast<RPS*>(other);
-	    assert(rps_other != nullptr);
+	{   
 	    auto removed = rps_other->RandomReplace(id);
 	    if(view.find(removed) != std::end(view))
-		view[other->id] = 0;
+		view[rps_other->id] = 0;
 	    else 
 		view[removed] = 0;
 	}

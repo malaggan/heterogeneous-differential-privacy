@@ -3,17 +3,15 @@
 #include "rps.hpp"
 #include "clust.hpp"
 
-class user /*final*/ : public RPS, public Clust
+class user /*final*/ : public Clust<RPS>
 {
 public:
-    explicit user(user_id_t me, abstract_user::set_t &already_joined) : abstract_user{me}, RPS{me, already_joined}, Clust{me}
+    explicit user(user_id_t me, abstract_user::set_t &already_joined) : Clust{me, already_joined}
     {}
     void doGossip() override {
 	RPS::doGossip();
 	Clust::doGossip();
     }
 
-    view_t getView() override {return RPS::getView();}
-    const view_t getView() const override {return RPS::getView();}
     virtual ~user() {}
 };
