@@ -1,8 +1,9 @@
 #include "rps.hpp"
-
+#include "Range.tcc"
 #include "RandomSample.tcc"
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
+#include <boost/range/algorithm/find_if.hpp>
 #include <iostream>
 #include <iterator>
 #include <cassert>
@@ -81,13 +82,25 @@ void RPS::doGossip() {
     // work with `myview' now.
     auto dest = dynamic_cast<RPS*>(all_peers[max]);
     assert(dest != nullptr);
-    // FIXME: i cannot shuffle the other peer's view since the view_t container does not provide RandomAccessIterator needed by std::shuffle
-    std::deque<view_t::value_type> otherview{std::begin(dest->view), std::end(dest->view)};
+    std::vector</*view_t::value_type*/std::pair<long unsigned int, long unsigned int>> otherview{std::begin(dest->view), std::end(dest->view)};
     std::shuffle(std::begin(otherview), std::end(otherview), rng);
-// shuffle the destination RPS view
-//   loop for i = 0 ; i < viewsiz/2
-//      if i == 0; set vToD to this peer, otherwise to i-th peer in this peer's RPS view
-//      if vToD not already in other peer's RPS view, append it, or set i-th pos if | | = viewSize
+    for(auto i : Range(viewSize/2))
+    {
+	view_t::key_type vToD = i?myview[i]:id, dToV;
+	auto c = boost::find_if(otherview, [vToD](auto a){return a.first == vToD;});
+	if(c == std::end(otherview))
+	{
+	    if(otherview.size() < viewSize)
+		otherview.push_back(std::make_pair(vToD,0));
+	    else
+		otherview[i] = std::make_pair(vToD,0);
+	}
+	else
+	{
+	    otherview[i] = std::make_pair(otherview[i].first,0);
+	    myview[i].second = at least as old as theirs
+	}
+    }
 //      else reset time of i-th peer in other peer's RPS ; and make other's peer copy at least as old as  ours
      
 //      set dToV to i-th peer of other's peer RPS (if exists), or last one if that peer is this peer
