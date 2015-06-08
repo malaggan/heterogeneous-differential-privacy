@@ -6,7 +6,7 @@
 int main()
 {
     abstract_user::set_t joined_peers;
-    RPS::all_t all_peers;
+    Cyclon::all_t all_peers;
     for(auto i : Range<std::vector, std::size_t>(500))
     {
 	auto peer = new user{i, joined_peers, all_peers};
@@ -15,7 +15,7 @@ int main()
     }
     for(auto u : joined_peers)
     {
-	auto a = dynamic_cast<RPS*>(u);
+	auto a = dynamic_cast<Cyclon*>(u);
 	assert(a != nullptr);
 	a->printView();
     }
