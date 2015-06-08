@@ -1,6 +1,6 @@
 #pragma once
 
-#include "rps.hpp"
+#include "Cyclon.hpp"
 #include "clust.hpp"
 
 class user /*final*/ : public Clust<RPS>

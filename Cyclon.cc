@@ -1,4 +1,4 @@
-#include "rps.hpp"
+#include "Cyclon.hpp"
 #include "Range.tcc"
 #include "RandomSample.tcc"
 #include <boost/range/adaptor/map.hpp>
