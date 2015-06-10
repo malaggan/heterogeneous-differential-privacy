@@ -23,10 +23,10 @@ public:
 
     bool contains(user_id_t u) const;
 
-    typename std::experimental::optional<view_t::iterator>
+    std::experimental::optional<view_t::iterator>
     operator[](user_id_t u);
 
-    typename std::experimental::optional<view_t::const_iterator>
+    std::experimental::optional<view_t::const_iterator>
     operator[](user_id_t u) const;
     
     void print_view() const override;
