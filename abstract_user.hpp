@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <unordered_map>
@@ -16,19 +15,40 @@ namespace std {
   };
 }
 
-
 class abstract_user {
 public:  
     using user_id_t	= uint_fast32_t;
     using age_t		= uint_fast32_t;
-    using view_t	= std::unordered_map<user_id_t,age_t>; 
+    struct slot {
+	user_id_t id;
+	mutable age_t age;
+	slot() : id{}, age{} {}
+	explicit slot(user_id_t id, age_t age) : id(id), age(age) {}
+	bool operator==(slot const& other) const {return      id == other.id  ; }
+	bool operator!=(slot const& other) const {return !(*this == other)    ; }
+	bool operator< (slot const& other) const {return     age <  other.age ; }
+	bool operator>=(slot const& other) const {return !(  age <  other.age); }
+	bool operator<=(slot const& other) const {return     age <= other.age ; }
+	bool operator> (slot const& other) const {return !(  age <= other.age); }
+	void reset_age() { age = 0; }
+	// age is the age of the user since he joined the network, not his age in the view
+	void update_age(slot const& other) { age = std::max(age, other.age); }
+	struct hash {
+	    std::size_t operator()(slot const& slot) const {
+		return std::hash<user_id_t>()(slot.id) ^ (std::hash<age_t>()(slot.age) << 1);
+	    }
+	};
+	struct key_eq { bool operator()(slot const& a, slot const& b) const {return a.id == b.id; } };
+	void operator++(int) const { age++; }
+    };
+    using view_t	= std::unordered_set<slot, slot::hash, slot::key_eq>; 
     using set_t         = std::unordered_set<abstract_user*>; // [1]
 
     user_id_t id;
     explicit abstract_user(user_id_t id) : id{id} {}
 
-    virtual void doGossip() = 0; // TODO : remember to user "override" in subclasses
-    virtual void printView() const {}    
+    virtual void do_gossip() = 0; // TODO : remember to user "override" in subclasses
+    virtual void print_view() const {}    
     virtual ~abstract_user() {}
 };
     

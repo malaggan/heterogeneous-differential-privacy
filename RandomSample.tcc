@@ -16,7 +16,7 @@
 std::default_random_engine rng{std::random_device{}()};
 
 template<typename Range>
-auto RandomSample(Range const &range, std::size_t sample_size)
+auto random_sample(Range const &range, std::size_t sample_size)
 {
     auto begin = std::begin(range);
     auto end   = std::end  (range);
