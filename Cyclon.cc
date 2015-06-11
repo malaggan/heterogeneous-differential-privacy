@@ -176,9 +176,7 @@ void cyclon::receive_gossip(
     {
 	auto p = view.find(a);
 	if(p != end(view))
-	{
-	    // p->update_age(a); generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [1]
-	}
+	    p->update_age(a); 
     }
     copy(to_be_received, std::inserter(view, end(view))); // TODO: change this to copy_if, using `!contains', if view_t is not a `set'
     // TODO: update age of entries contained in my view with those arriving !
@@ -229,8 +227,3 @@ void cyclon::do_gossip() {
     // }
 }
 
-
-// [1] In C++0x standard:
-// 23.2.4 Associative containers
-// 5 For set and multiset the value type is the same as the key type. For map and multimap it is equal to pair. Keys in an associative container are immutable.
-// 6 iterator of an associative container is of the bidirectional iterator category. For associative containers where the value type is the same as the key type, both iterator and const_iterator are constant iterators. It is unspecified whether or not iterator and const_iterator are the same type.
