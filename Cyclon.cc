@@ -169,20 +169,32 @@ auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, v
 void cyclon::receive_gossip(
     cyclon const */*from*/,
     view_t to_be_received,
-    view_t const &/*was_sent*/) {
-    // 6. Discard entries pointing at me and entries already contained in my view.
+    view_t was_sent) {
+    // 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
     helpers::remove(to_be_received, id);
+    copy(to_be_received, std::inserter(view, end(view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set'
+    // update age of entries contained in my view with those arriving !
     for(auto const& a : to_be_received)
     {
 	auto p = view.find(a);
 	if(p != end(view))
 	    p->update_age(a); 
     }
-    copy(to_be_received, std::inserter(view, end(view))); // TODO: change this to copy_if, using `!contains', if view_t is not a `set'
-    // TODO: update age of entries contained in my view with those arriving !
-    
-    // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any), and secondly replacing entries among the ones sent to Q.
+    // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any) [[done above in `copy']],
+    // and secondly replacing entries among the ones sent to Q.
 
+    auto excess = view.size() - viewSize;
+    if(excess <= 0) return;
+    // remove elements from those sent to Q until size is within bounds
+    for(auto a  = begin(was_sent); a != end(was_sent) && excess > 0; a++, excess--) // not using range-based for because I need an iterator for `erase'
+    {
+	auto p = view.find(*a);
+	if(p != end(view))
+	{
+	    was_sent.erase(a);
+	    view.erase(p);
+	}
+    }	       
 }
 
 void cyclon::do_gossip() {
