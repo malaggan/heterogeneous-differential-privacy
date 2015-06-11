@@ -2,6 +2,7 @@
 
 #include "abstract_user.hpp"
 #include <experimental/optional>
+#include <tuple>
 
 class cyclon : public abstract_user
 {
@@ -19,9 +20,8 @@ public:
     user_id_t random_neighbor() const;
     user_id_t random_replace(user_id_t id);
 
-    template <typename T>
-    void send_gossip(T) const;
-    void receive_gossip(cyclon const *from, view_t const &);
+    std::tuple<cyclon*, view_t> send_gossip(std::experimental::optional<user_id_t> = std::experimental::nullopt) const;
+    void receive_gossip(cyclon const *from, view_t /*deep copy*/ to_be_received, view_t const &was_sent);
 
     void exchange_ids(cyclon &other);
 

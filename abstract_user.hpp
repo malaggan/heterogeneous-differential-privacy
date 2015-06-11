@@ -41,7 +41,7 @@ public:
 	struct key_eq { bool operator()(slot const& a, slot const& b) const {return a.id == b.id; } };
 	void operator++(int) const { age++; }
     };
-    using view_t	= std::unordered_set<slot, slot::hash, slot::key_eq>; 
+    using view_t	= std::unordered_set<slot, slot::hash, slot::key_eq>; // TODO use boost::static_array
     using set_t         = std::unordered_set<abstract_user*>; // [1]
 
     user_id_t id;

@@ -18,58 +18,81 @@
 #include <deque>
 
 using boost::make_function_output_iterator;
+using std::experimental::make_optional;
 using boost::adaptors::transformed;
 using std::experimental::optional;
 using std::experimental::nullopt;
 using boost::algorithm::copy_if;
-using namespace boost::lambda;
+using boost::lambda::var;
 using boost::max_element;
+using boost::lambda::_1;
+using std::make_tuple;
 using std::shuffle;
 using std::find_if;
 using boost::copy;
 using std::cbegin;
+using std::ignore;
 using std::begin;
+using std::tuple;
+using std::deque;
 using std::setw;
 using std::cout;
 using std::endl;
 using std::cend;
 using std::end;
-using std::deque;
+using std::tie;
 
+
+namespace {
+    namespace helpers {
+	inline void add(
+	    abstract_user::view_t    &view,
+	    abstract_user::user_id_t u) {
+	    view.emplace(u, 0);
+	}
+	inline optional<abstract_user::view_t::iterator> get_by_id(
+	    abstract_user::view_t    &view,
+	    abstract_user::user_id_t u) {
+	    auto p = find_if(begin(view), end(view), [u](auto const &a){return a.id==u;});
+	    return p == end(view) ? nullopt : make_optional(p);
+	}
+	inline optional<abstract_user::view_t::const_iterator> get_by_id(
+	    abstract_user::view_t const    &view,
+	    abstract_user::user_id_t       u) {
+	    auto p = find_if(cbegin(view), cend(view), [u](auto const &a){return a.id==u;});
+	    return p == cend(view) ? nullopt : make_optional(p);
+	}
+	inline bool contains(
+	    abstract_user::view_t const    &view,
+	    abstract_user::user_id_t       u) {
+	    return static_cast<bool>(get_by_id(view, u));
+	}
+	inline void remove(
+	    abstract_user::view_t    &view,
+	    abstract_user::user_id_t u) {
+	    auto p = get_by_id(view, u);
+	    if(p)
+		view.erase(p.value());
+	}
+	auto get_ids = transformed([](abstract_user::slot const &a){return a.id;});
+    }
+}
+    
 
 void cyclon::add(user_id_t u) {
-    view.emplace(u,0);
+    helpers::add(view, u);
 }
 
 bool cyclon::contains(user_id_t u) const {
-    return !!((*this)[u]);
+    return helpers::contains(view, u);
 }
 
-void cyclon::remove(user_id_t u) {
-    auto p = (*this)[u];
-    if(p)
-	view.erase(p.value());
+void cyclon::remove(user_id_t u) {    
+    helpers::remove(view, u);
 }
 
-auto
-cyclon::operator[](user_id_t u)
-    -> optional<view_t::iterator>
-{
-    auto p = find_if(begin(view), end(view), [u](auto const &a){return a.id==u;});
-    if(p == end(view))
-	return nullopt;
-    return p;
-}
-
-auto
-cyclon::operator[](user_id_t u) const
-    -> optional<view_t::const_iterator>
-{
-    auto p = find_if(cbegin(view), cend(view), [u](auto const &a){return a.id==u;});
-    if(p == cend(view))
-	return nullopt;
-    return p;
-}
+auto cyclon::operator[](user_id_t u)       -> optional<view_t::iterator>       { return helpers::get_by_id(view, u); }
+auto cyclon::operator[](user_id_t u) const -> optional<view_t::const_iterator> { return helpers::get_by_id(view, u); }
 
 void cyclon::exchange_ids(cyclon &other) {
     add(other.id); // age is zero
@@ -97,13 +120,15 @@ cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
     }
 }
 
+
+
 auto cyclon::random_neighbor() const -> user_id_t {
-    return *random_sample<>()(view | transformed([](auto const &a){return a.id;}), 1).begin();
+    return *random_sample<>()(view | helpers::get_ids, 1).begin();
 }
 
 void cyclon::print_view() const {
     copy(
-	view | transformed([](auto const &a){return a.id;}),
+	view | helpers::get_ids,
 	make_function_output_iterator( 
 	    var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 	);
@@ -123,28 +148,29 @@ auto get_oldest_peer = [](auto const &view) {
 			   return p1 < p2;});
 };
 
-template <typename T>
-void cyclon::send_gossip(T dest) const {
+auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
     // 1. Increase by one the age of all neighbors.
     for(auto &neighbor : view) // std::for_each ?
 	neighbor ++;
     
     // 2. Select neighbor Q with the highest age among all neighbors
-    auto max = get_oldest_peer(view);
+    auto dest = dest_opt.value_or(get_oldest_peer(view)->id);
     // 2. Select L − 1 other random neighbors.
     deque<view_t::key_type> myview{begin(view),end(view)};
-    copy_if(view, std::back_inserter<>(myview), [max](auto const&p){return p != *max;});
+    copy_if(view, std::back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});
     myview = random_sample<deque>()(myview, viewSize/2);
     // 3. Replace Q’s entry with a new entry of age 0 and with my address.    
     myview.emplace_front(id, 0);
-    dynamic_cast<cyclon*>(all_peers[dest->id])
-	->receive_gossip(this, view_t{begin(myview), end(myview)}); 
+    return make_tuple(dynamic_cast<cyclon*>(all_peers[dest]), view_t{begin(myview), end(myview)});
 }
 
-void cyclon::receive_gossip(cyclon const */*from*/, view_t const &msg) {
+void cyclon::receive_gossip(
+    cyclon const */*from*/,
+    view_t to_be_received,
+    view_t const &/*was_sent*/) {
     // 6. Discard entries pointing at me and entries already contained in my view.
-    // TODO: extract functionality of add/contains/remove to non-member functions and use from here
-    // msg.remove(id);
+    helpers::remove(to_be_received, id);
+    // copy_if ?
     // msg.remove_all(view | get_keys /* using `transformed' */)
     
     // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any), and secondly replacing entries among the ones sent to Q.
@@ -152,7 +178,16 @@ void cyclon::receive_gossip(cyclon const */*from*/, view_t const &msg) {
 }
 
 void cyclon::do_gossip() {
-    send_gossip(get_oldest_peer(view));
+    view_t view1;
+    cyclon *target;
+    std::tie(target, view1) = send_gossip();
+
+    view_t view2;
+    std::tie(ignore, view2) = target->send_gossip(id);
+
+    receive_gossip(target, view2, view1);
+    target->receive_gossip(this, view1, view2);
+
     
     
     // myview.push_front(max);
