@@ -19,7 +19,7 @@ BIN := gossple
 all: $(BIN) TAGS
 
 TAGS:   
-	etags *.cc *.hpp *.tcc
+	etags *.cc *.hh *.tcc
 
 $(BIN): $(obj)
 	$(CXX) $^ $(LDFLAGS)  -o $@
