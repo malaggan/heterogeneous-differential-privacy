@@ -36,7 +36,7 @@ public:
 	    { age = std::max(age, other.age); }
 	struct hash {
 	    std::size_t operator()(slot const& slot) const {
-		return std::hash<user_id_t>()(slot.id); // "^ (std::hash<age_t>()(slot.age) << 1);" should not be used [2].
+		return std::hash<user_id_t>()(slot.id); // "^ (std::hash<age_t>()(slot.age) << 1);" should not be used [2]. 
 	    }
 	};
 	struct key_eq { bool operator()(slot const& a, slot const& b) const {return a.id == b.id; } };
