@@ -3,7 +3,7 @@ default: all
 
 CXX = g++
 
-CXXFLAGS:= -std=c++14 #-mmpx
+CXXFLAGS:= -std=c++1z #-mmpx
 LDFLAGS := #-lmpxwrappers
 
 WARN := -Wextra -pedantic -Wall -Wold-style-cast -Werror -Wc++14-compat

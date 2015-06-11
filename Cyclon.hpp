@@ -12,16 +12,18 @@ public:
 
     explicit cyclon(user_id_t me, set_t &already_joined, all_t &all_peers); 
 
+    void add(user_id_t u);
+    bool contains(user_id_t u) const;
+    void remove(user_id_t u);
+    
     user_id_t random_neighbor() const;
-
     user_id_t random_replace(user_id_t id);
 
-    void add(user_id_t u);
-    void remove(user_id_t u);
+    template <typename T>
+    void send_gossip(T) const;
+    void receive_gossip(cyclon const *from, view_t const &);
 
     void exchange_ids(cyclon &other);
-
-    bool contains(user_id_t u) const;
 
     std::experimental::optional<view_t::iterator>
     operator[](user_id_t u);

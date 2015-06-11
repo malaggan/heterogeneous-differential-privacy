@@ -4,10 +4,10 @@
 #include "Range.tcc"
 
 #include <boost/range/algorithm/max_element.hpp>
-#include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/function_output_iterator.hpp>
 #include <boost/range/algorithm/find_if.hpp>
+#include <boost/algorithm/cxx11/copy_if.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <algorithm>
@@ -21,8 +21,8 @@ using boost::make_function_output_iterator;
 using boost::adaptors::transformed;
 using std::experimental::optional;
 using std::experimental::nullopt;
+using boost::algorithm::copy_if;
 using namespace boost::lambda;
-using boost::remove_erase;
 using boost::max_element;
 using std::shuffle;
 using std::find_if;
@@ -37,7 +37,19 @@ using std::end;
 using std::deque;
 
 
-void cyclon::add(user_id_t u) { view.emplace(u,0); }
+void cyclon::add(user_id_t u) {
+    view.emplace(u,0);
+}
+
+bool cyclon::contains(user_id_t u) const {
+    return !!((*this)[u]);
+}
+
+void cyclon::remove(user_id_t u) {
+    auto p = (*this)[u];
+    if(p)
+	view.erase(p.value());
+}
 
 auto
 cyclon::operator[](user_id_t u)
@@ -59,16 +71,6 @@ cyclon::operator[](user_id_t u) const
     return p;
 }
 
-bool cyclon::contains(user_id_t u) const
-{
-    return !!((*this)[u]);
-}
-void cyclon::remove(user_id_t u)
-{
-    auto p = (*this)[u];
-    if(p)
-	view.erase(p.value());
-}
 void cyclon::exchange_ids(cyclon &other) {
     add(other.id); // age is zero
     other.add(id);
@@ -76,7 +78,7 @@ void cyclon::exchange_ids(cyclon &other) {
 cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers) 
     : abstract_user{me}, view{}, all_peers{all_peers}
 {
-    auto bootstrapPeers = random_sample(already_joined, viewSize);
+    auto bootstrapPeers = random_sample<>()(already_joined, viewSize);
     for(auto other : bootstrapPeers)
     {
 	auto rps_other = dynamic_cast<cyclon*>(other);
@@ -96,13 +98,12 @@ cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
 }
 
 auto cyclon::random_neighbor() const -> user_id_t {
-    return *random_sample(view | transformed([](auto const &a){return a.id;}), 1).begin();
+    return *random_sample<>()(view | transformed([](auto const &a){return a.id;}), 1).begin();
 }
 
 void cyclon::print_view() const {
     copy(
 	view | transformed([](auto const &a){return a.id;}),
-	//std::ostream_iterator<int>(std::cout, ",")
 	make_function_output_iterator( 
 	    var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 	);
@@ -122,30 +123,36 @@ auto get_oldest_peer = [](auto const &view) {
 			   return p1 < p2;});
 };
 
-void cyclon::do_gossip() {
+template <typename T>
+void cyclon::send_gossip(T dest) const {
     // 1. Increase by one the age of all neighbors.
-    for(auto &neighbor : view)
+    for(auto &neighbor : view) // std::for_each ?
 	neighbor ++;
     
     // 2. Select neighbor Q with the highest age among all neighbors
     auto max = get_oldest_peer(view);
     // 2. Select L − 1 other random neighbors.
-    auto range = view; // | boost::adaptors::map_keys;
-    deque<view_t::key_type> myview{begin(range),end(range)};
-    remove_erase(myview, *max);
-    shuffle(begin(myview), end(myview), rng);
-    if(myview.size() >= viewSize/2)
-	myview.resize(viewSize/2-1);
-    // 3. Replace Q’s entry with a new entry of age 0 and with my address.
+    deque<view_t::key_type> myview{begin(view),end(view)};
+    copy_if(view, std::back_inserter<>(myview), [max](auto const&p){return p != *max;});
+    myview = random_sample<deque>()(myview, viewSize/2);
+    // 3. Replace Q’s entry with a new entry of age 0 and with my address.    
     myview.emplace_front(id, 0);
-    
+    dynamic_cast<cyclon*>(all_peers[dest->id])
+	->receive_gossip(this, view_t{begin(myview), end(myview)}); 
+}
 
-    // 4. Send the updated subset to peer Q.
-    // 5. Receive from Q a subset of no more that i of its own entries.
+void cyclon::receive_gossip(cyclon const */*from*/, view_t const &msg) {
     // 6. Discard entries pointing at me and entries already contained in my view.
-    // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any), and secondly replacing entries among the ones sent to Q.
+    // TODO: extract functionality of add/contains/remove to non-member functions and use from here
+    // msg.remove(id);
+    // msg.remove_all(view | get_keys /* using `transformed' */)
     
-   
+    // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any), and secondly replacing entries among the ones sent to Q.
+
+}
+
+void cyclon::do_gossip() {
+    send_gossip(get_oldest_peer(view));
     
     
     // myview.push_front(max);
