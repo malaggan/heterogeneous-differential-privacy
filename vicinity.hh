@@ -9,7 +9,7 @@ public:
 
     explicit vicinity(typename RPS::user_id_t me, typename RPS::set_t &already_joined, typename RPS::all_t &all_peers) : RPS{me, already_joined, all_peers} {}
     
-    void do_gossip() override {}   
+    void do_gossip() override;
 
     virtual ~vicinity() {}
 };
