@@ -1,7 +1,7 @@
-#include "RandomSample.tcc"
-#include "Random.hpp"
-#include "Cyclon.hpp"
-#include "Range.tcc"
+#include "random_sample.tcc"
+#include "random.hh"
+#include "cyclon.hh"
+#include "range.tcc"
 
 #include <boost/range/algorithm/max_element.hpp>
 #include <boost/range/adaptor/transformed.hpp>
