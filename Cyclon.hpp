@@ -21,7 +21,7 @@ public:
     user_id_t random_replace(user_id_t id);
 
     std::tuple<cyclon*, view_t> send_gossip(std::experimental::optional<user_id_t> = std::experimental::nullopt) const;
-    void receive_gossip(cyclon const *from, view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
+    void receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
 
     void exchange_ids(cyclon &other);
 

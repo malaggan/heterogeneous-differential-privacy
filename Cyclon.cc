@@ -167,7 +167,6 @@ auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, v
 }
 
 void cyclon::receive_gossip(
-    cyclon const */*from*/,
     view_t to_be_received,
     view_t was_sent) {
     // 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
@@ -198,44 +197,14 @@ void cyclon::receive_gossip(
 }
 
 void cyclon::do_gossip() {
-    view_t view1;
+    view_t to_send;
     cyclon *target;
-    std::tie(target, view1) = send_gossip();
+    std::tie(target, to_send) = send_gossip();
 
-    view_t view2;
-    std::tie(ignore, view2) = target->send_gossip(id);
+    view_t to_receive;
+    std::tie(ignore, to_receive) = target->send_gossip(id);
 
-    receive_gossip(target, view2, view1);
-    target->receive_gossip(this, view1, view2);
-
-    
-    
-    // myview.push_front(max);
-    // auto second = begin(myview);
-    // std::advance(second, 1);
-    // std::shuffle(second, end(myview), rng);
-    // // end getGossipDest
-    // // work with `myview' now.
-    // auto dest = dynamic_cast<cyclon*>(all_peers[max]);
-    // assert(dest != nullptr);
-    // std::vector</*view_t::value_type*/std::pair<long unsigned int, long unsigned int>> otherview{begin(dest->view), end(dest->view)};
-    // std::shuffle(begin(otherview), end(otherview), rng);
-    // for(auto i : Range(viewSize/2))
-    // {
-    // 	view_t::key_type vToD = i?myview[i]:id, dToV;
-    // 	auto c = boost::find_if(otherview, [vToD](auto a){return a.first == vToD;});
-    // 	if(c == end(otherview))
-    // 	{
-    // 	    if(otherview.size() < viewSize)
-    // 		otherview.push_back(std::make_pair(vToD,0));
-    // 	    else
-    // 		otherview[i] = std::make_pair(vToD,0);
-    // 	}
-    // 	else
-    // 	{
-    // 	    otherview[i] = std::make_pair(otherview[i].first,0);
-    //         // myview[i].second = at least as old as theirs
-    // 	}
-    // }
+    receive_gossip(to_receive, to_send);
+    target->receive_gossip(to_send, to_receive);
 }
 
