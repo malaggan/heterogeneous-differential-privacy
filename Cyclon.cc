@@ -25,8 +25,10 @@ using std::experimental::nullopt;
 using boost::algorithm::copy_if;
 using boost::lambda::var;
 using boost::max_element;
+using std::back_inserter;
 using boost::lambda::_1;
 using std::make_tuple;
+using std::inserter;
 using std::shuffle;
 using std::find_if;
 using boost::copy;
@@ -157,7 +159,7 @@ auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, v
     auto dest = dest_opt.value_or(get_oldest_peer(view)->id);
     // 2. Select L − 1 other random neighbors.
     deque<view_t::key_type> myview{begin(view),end(view)};
-    copy_if(view, std::back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});
+    copy_if(view, back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});
     myview = random_sample<deque>()(myview, viewSize/2);
     // 3. Replace Q’s entry with a new entry of age 0 and with my address.    
     myview.emplace_front(id, 0);
@@ -170,8 +172,16 @@ void cyclon::receive_gossip(
     view_t const &/*was_sent*/) {
     // 6. Discard entries pointing at me and entries already contained in my view.
     helpers::remove(to_be_received, id);
-    // copy_if ?
-    // msg.remove_all(view | get_keys /* using `transformed' */)
+    for(auto const& a : to_be_received)
+    {
+	auto p = view.find(a);
+	if(p != end(view))
+	{
+	    // p->update_age(a); generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [1]
+	}
+    }
+    copy(to_be_received, std::inserter(view, end(view))); // TODO: change this to copy_if, using `!contains', if view_t is not a `set'
+    // TODO: update age of entries contained in my view with those arriving !
     
     // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any), and secondly replacing entries among the ones sent to Q.
 
@@ -218,3 +228,9 @@ void cyclon::do_gossip() {
     // 	}
     // }
 }
+
+
+// [1] In C++0x standard:
+// 23.2.4 Associative containers
+// 5 For set and multiset the value type is the same as the key type. For map and multimap it is equal to pair. Keys in an associative container are immutable.
+// 6 iterator of an associative container is of the bidirectional iterator category. For associative containers where the value type is the same as the key type, both iterator and const_iterator are constant iterators. It is unspecified whether or not iterator and const_iterator are the same type.

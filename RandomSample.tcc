@@ -24,7 +24,7 @@ using element_type_t = decltype(*std::begin(std::declval<T>()));
 #include <utility>
 #include <utility>
 
-template <template <typename...> typename ReturnTypeT = std::vector>
+template <template <typename...> class ReturnTypeT = std::vector>
 struct random_sample {
     template <typename Range, typename ReturnType = ReturnTypeT<remove_cr_t<element_type_t<Range>>>>
 	ReturnType operator()(Range const& range, std::size_t sample_size) const {
