@@ -6,13 +6,14 @@
 namespace {
     namespace helpers {
 
-	bool semantic_less(abstract_user::user_id_t a,
-			   abstract_user::user_id_t b) {
-	    // lookup a user-user similarity matrix (TODO: locate that file...)
-	}
+	// bool semantic_less(abstract_user::user_id_t,
+	// 		   abstract_user::user_id_t) {
+	//     // lookup a user-user similarity matrix (TODO: locate that file...)
+	//     return true;
+	// }
 	
-	template <typename T>
-	bool semantic_less(T const &a, T const& b) { return semantic_less(a.id, b.id); }
+	// template <typename T>
+	// bool semantic_less(T const &a, T const& b) { return semantic_less(a.id, b.id); }
 	    
     }
 }

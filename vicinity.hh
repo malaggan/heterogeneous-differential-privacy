@@ -13,3 +13,7 @@ public:
 
     virtual ~vicinity() {}
 };
+
+// explicit instantiation declaration (to prevent automatic instantation)
+#include "cyclon.hh"
+extern template void vicinity<cyclon>::do_gossip();
