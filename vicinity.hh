@@ -5,9 +5,9 @@
 template<typename RPS>
 class vicinity : public RPS {  
 public:
-    typename RPS::view_t view;
+    view_t view;
 
-    explicit vicinity(typename RPS::user_id_t me, typename RPS::set_t &already_joined, typename RPS::all_t &all_peers) : RPS{me, already_joined, all_peers} {}
+    explicit vicinity(user_id_t me, set_t &already_joined, all_t &all_peers) : RPS{me, already_joined, all_peers} {}
     
     void do_gossip() override;
 

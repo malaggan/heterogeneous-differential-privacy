@@ -3,10 +3,10 @@
 #include <cassert>
 #include <typeinfo>
 #include <iostream>
-int main()
+int mainf()
 {
-    abstract_user::set_t joined_peers;
-    cyclon::all_t all_peers;
+    set_t joined_peers;
+    all_t all_peers;
     for(auto i : range<std::vector, std::size_t>(500))
     {
 	auto peer = new user{i, joined_peers, all_peers};

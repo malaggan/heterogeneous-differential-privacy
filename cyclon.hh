@@ -7,7 +7,6 @@
 class cyclon : public abstract_user
 {
 public:
-    using all_t = std::unordered_map<abstract_user::user_id_t, abstract_user*>;
     view_t view;
     all_t &all_peers;
 

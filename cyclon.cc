@@ -1,3 +1,4 @@
+// Implementing: Voulgaris, S., Gavidia, D., & Van Steen, M. (2005). Cyclon: Inexpensive membership management for unstructured p2p overlays. Journal of Network and Systems Management, 13(2), 197-217. (DOI: 10.1007/s10922-005-4441-x)
 #include "random_sample.tcc"
 #include "random.hh"
 #include "cyclon.hh"
@@ -48,35 +49,35 @@ using std::tie;
 namespace {
     namespace helpers {
 	inline void add(
-	    abstract_user::view_t    &view,
-	    abstract_user::user_id_t u) {
+	    view_t    &view,
+	    user_id_t u) {
 	    view.emplace(u, 0);
 	}
-	inline optional<abstract_user::view_t::iterator> get_by_id(
-	    abstract_user::view_t    &view,
-	    abstract_user::user_id_t u) {
+	inline optional<view_t::iterator> get_by_id(
+	    view_t    &view,
+	    user_id_t u) {
 	    auto p = find_if(begin(view), end(view), [u](auto const &a){return a.id==u;});
 	    return p == end(view) ? nullopt : make_optional(p);
 	}
-	inline optional<abstract_user::view_t::const_iterator> get_by_id(
-	    abstract_user::view_t const    &view,
-	    abstract_user::user_id_t       u) {
+	inline optional<view_t::const_iterator> get_by_id(
+	    view_t const    &view,
+	    user_id_t       u) {
 	    auto p = find_if(cbegin(view), cend(view), [u](auto const &a){return a.id==u;});
 	    return p == cend(view) ? nullopt : make_optional(p);
 	}
 	inline bool contains(
-	    abstract_user::view_t const    &view,
-	    abstract_user::user_id_t       u) {
+	    view_t const    &view,
+	    user_id_t       u) {
 	    return static_cast<bool>(get_by_id(view, u));
 	}
 	inline void remove(
-	    abstract_user::view_t    &view,
-	    abstract_user::user_id_t u) {
+	    view_t    &view,
+	    user_id_t u) {
 	    auto p = get_by_id(view, u);
 	    if(p)
 		view.erase(p.value());
 	}
-	auto get_ids = transformed([](abstract_user::slot const &a){return a.id;});
+	auto get_ids = transformed([](slot const &a){return a.id;});
     }
 }
     
@@ -171,7 +172,10 @@ void cyclon::receive_gossip(
     view_t was_sent) {
     // 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
     helpers::remove(to_be_received, id);
-    copy(to_be_received, std::inserter(view, end(view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set'
+    copy(to_be_received, std::inserter(view, end(view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set' . Instead:
+    //        auto it = std::unique(row.begin(), row.end()); row.resize(it - row.begin());
+    
+    //
     // update age of entries contained in my view with those arriving !
     for(auto const& a : to_be_received)
     {
