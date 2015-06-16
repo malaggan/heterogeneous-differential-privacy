@@ -22,7 +22,6 @@ template <typename T>
 using element_type_t = decltype(*std::begin(std::declval<T>()));
 
 #include <utility>
-#include <utility>
 
 template <template <typename...> class ReturnTypeT = std::vector>
 struct random_sample {

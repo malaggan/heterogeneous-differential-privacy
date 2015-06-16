@@ -3,7 +3,7 @@
 #include <cassert>
 #include <typeinfo>
 #include <iostream>
-int mainf()
+int main()
 {
     set_t joined_peers;
     all_t all_peers;
