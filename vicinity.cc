@@ -18,7 +18,7 @@
 namespace ba = boost::accumulators;
 namespace {
     namespace helpers {
-	using dataset_t = std::vector<std::set<uint_fast32_t>>; // has to be an ordered set for set_intersection later
+	using dataset_t = std::vector<std::set<item_id_t>>; // has to be an ordered set for set_intersection later
 	dataset_t load_dataset(std::string path);
 
 	// TODO: avoid global state
@@ -27,14 +27,27 @@ namespace {
 	// this global var caches the perturbed similarity values. to change the noise, application must be re-run.
 	std::map<std::pair<user_id_t, user_id_t>, float> similarities; // TODO: not using unordered_map to avoid defining hash for pair, but it would be faster.
 
-	std::vector<float> const& weights_of(user_id_t id, std::vector<item_id_t> const & subset) {
+	// TODO: can't this be cached? return a reference?
+	std::vector<float> weights_of(user_id_t id, std::vector<item_id_t> const & subset) {
 	    if(!privacy_weights.count(id))
 		std::generate_n(std::back_inserter<>(privacy_weights[id]),
 				dataset.value()[id].size(),
 				std::bind(std::uniform_real_distribution<float>{},rng));  // random weights , if not already generated
-
-	    // FIXME: return only the weigts for items in the `subset'
-	    return privacy_weights[id]; // TODO: support privacy classes (unconcerned, etc...)
+	    
+	    // return only the weigts for items in the `subset'
+	    //
+	    // set<item_id_t> (sorted): 3   76  195 344
+	    // subset                 : 3   -   195 -
+	    // privacy_weights(vector): 0.5 1.0 0.3 0.24
+	    // return value           : 0.5     0.3 (in that order)
+	    // for every subset item, find index in set, append privacy_weight at that index
+	    std::vector<float> v;
+	    for(auto const &subset_item : subset) {
+		auto index = std::distance(std::begin(dataset.value()[id]), dataset.value()[id].find(subset_item));
+		v.push_back(privacy_weights[id][index]);
+	    }
+	    return v;
+		// TODO: support privacy classes (unconcerned, etc...)
 	}
 
 	float cached_similarity(user_id_t a, user_id_t b) {
