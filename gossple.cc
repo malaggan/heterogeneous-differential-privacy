@@ -13,6 +13,7 @@ int main()
 	joined_peers.insert(peer);
 	all_peers[i] = peer;
     }
+    
     for(auto u : joined_peers)
     {
 	auto a = dynamic_cast<cyclon*>(u);
