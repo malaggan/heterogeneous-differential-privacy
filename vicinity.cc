@@ -1,7 +1,7 @@
 // Implementing: Voulgaris, S., & Van Steen, M. (2005). Epidemic-style management of semantic overlays for content-based searching. In Euro-Par 2005 Parallel Processing (pp. 1143-1152). Springer Berlin Heidelberg. (DOI: 10.1007/11549468_125)
 #include "vicinity.hh"
 #include "random.hh"
-//#include </usr/include/boost/range/algorithm/partial_sort_copy.hpp>
+#include </usr/include/boost/range/algorithm/partial_sort_copy.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <boost/range/algorithm_ext/for_each.hpp>
@@ -16,8 +16,8 @@
 #include <boost/accumulators/statistics/sum_kahan.hpp>
 #include <iterator>
 namespace ba = boost::accumulators;
-namespace {
-    namespace helpers {
+namespace helpers {
+    namespace {
 	using dataset_t = std::vector<std::set<item_id_t>>; // has to be an ordered set for set_intersection later
 	dataset_t load_dataset(std::string path);
 
@@ -119,50 +119,136 @@ namespace {
 	    return cached_similarity(a, b);
 	}
 	
-	template <typename T>
-	float similarity(T const &a, T const& b) { return similarity(a.id, b.id); }
+	template <typename T1, typename T2>
+	float similarity(T1 const &a, T2 const& b) { return similarity(a.id, b.id); }
 
-	// TODO: more_similar_to(this_guy, a, b)
+	// more_similar_to(this_guy, a, b)
+	// returns true if a is more similar to reference than b
+	template <typename T1, typename T2>
+	bool more_similar(T1 const &reference, T2 const& a, T2 const& b) {
+	    return similarity(reference, a) > similarity(reference, b);
+	}
     }
 }
 
-template <typename RPS>
-void vicinity<RPS>::do_gossip() {
+template<typename RPS>
+auto vicinity<RPS>::send_gossip(std::experimental::optional<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
     // send to peer with oldest time stamp
     // AGGRESSIVELY BIASED:
     // Select the viewSize/2 items of nodes semantically closest to the selected peer
     //   from the VICINITY view and the CYCLON view
 
-    // TODO add `compare' which compares semantic profiles using look-up by id
     std::vector<slot> candidates(view.size() + RPS::view.size());
 
-    std::partial_sort_copy(
-	std::begin(view)      , std::end(view),
-	std::begin(candidates), std::begin(candidates) + view.size(),
-	[this](auto const &a, auto const &b) {return helpers::similarity(*this, a) > helpers::similarity(*this, b);});
+    auto semantic_comp = std::bind(helpers::more_similar<vicinity<RPS>, slot>,
+				   *this,
+				   std::placeholders::_1,
+				   std::placeholders::_2);
+    
+    boost::partial_sort_copy(
+	view,
+	candidates, // std::begin(candidates) + view.size(), // do not need the verbosity. items copied are exactly min(size1, size2)
+	semantic_comp);
 
     std::partial_sort_copy(
 	std::begin(RPS::view)               , std::end(RPS::view),
-	std::begin(candidates) + view.size(), std::end(candidates));
+	std::begin(candidates) + view.size(), std::end(candidates),
+	semantic_comp);
     
     std::inplace_merge(
 	std::begin(candidates),
 	std::begin(candidates) + view.size(),
-	std::end(candidates));
-    
+	std::end(candidates),
+	semantic_comp);
+
+    // thess are the items to send
     candidates.resize(viewSize/2);
-    
+
+    auto oldest = get_oldest_peer(view);
+    if(oldest == view.end());
+    {
+	oldest = get_oldest_peer(RPS::view);
+	assert(oldest != end(RPS::view));
+    }
+    auto target = dest_opt.value_or(oldest->id);
+    return std::make_tuple(dynamic_cast<vicinity<RPS>*>(RPS::all_peers[target]), view_t{begin(candidates), end(candidates)});
+}
+
+#define UNUSED(x)
+template<typename RPS>
+void vicinity<RPS>::receive_gossip(
+    view_t to_be_received,
+    view_t UNUSED(was_sent)) {
+#undef UNUSED
+    // this is items to keep after receive
     // Keep the viewSize items of nodes that are semantically closest, out of items in its current view, items received, and items in the local CYCLON view.
     // In case of multiple items from the same node, keep the one with the most recent timestamp
+
+    // 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
+    ::helpers::remove(to_be_received, RPS::id);
+
+    std::vector<slot> candidates(view.size() + RPS::view.size() + to_be_received.size());
+
+    auto semantic_comp = std::bind(helpers::more_similar<vicinity<RPS>, slot>,
+				   *this,
+				   std::placeholders::_1,
+				   std::placeholders::_2);
+    
+    boost::partial_sort_copy(
+	view,
+	candidates, 
+	semantic_comp);
+
+    std::partial_sort_copy(
+	std::begin(RPS::view)               , std::end(RPS::view),
+	std::begin(candidates) + view.size(), std::end(candidates),
+	semantic_comp);
+
+    std::inplace_merge(
+	std::begin(candidates),
+	std::begin(candidates) + view.size(),
+	std::end(candidates) + view.size() + RPS::view.size(),
+	semantic_comp);
+
+    std::partial_sort_copy(
+	std::begin(to_be_received)                             , std::end(to_be_received),
+	std::begin(candidates) + view.size() + RPS::view.size(), std::end(candidates),
+	semantic_comp);
+
+    std::inplace_merge(
+	std::begin(candidates),
+	std::begin(candidates) + view.size() + RPS::view.size(),
+	std::end(candidates),
+	semantic_comp);
+
+    // keep only top `viewSize'. FIXME: should have removed duplicates, keeping oldest timestamp.
+    candidates.resize(viewSize);
+    view.clear();
+    view.insert(std::begin(candidates),std::end(candidates));
 }
+
+template <typename RPS>
+void vicinity<RPS>::do_gossip() {
+    view_t to_send;
+    vicinity<RPS> *target;
+    std::tie(target, to_send) = send_gossip();
+
+    view_t to_receive;
+    std::tie(std::ignore, to_receive) = target->send_gossip(RPS::id);
+
+    receive_gossip(to_receive, to_send);
+    target->receive_gossip(to_send, to_receive);
+}
+
+
 
 #include <fstream>
 #include <iostream>
 #include <cassert>
 #include <functional>
 
-namespace {
-    namespace helpers {
+namespace helpers {
+    namespace {
 	// http://stackoverflow.com/a/16546151/397405
 	struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };
 	

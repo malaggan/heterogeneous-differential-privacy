@@ -44,7 +44,7 @@ struct slot {
 };
 
 using view_t	= std::unordered_set<slot, slot::hash, slot::key_eq>; // TODO use boost::static_array
-using set_t         = std::unordered_set<abstract_user*>; // [1]
+using set_t     = std::unordered_set<abstract_user*>; // [1]
 
 class abstract_user {
 public:  
@@ -57,6 +57,27 @@ public:
 };
 
 using all_t = std::unordered_map<user_id_t, abstract_user*>;
+
+#include <boost/range/algorithm/max_element.hpp>
+template<typename T>
+auto get_oldest_peer(T const &view) {
+    return boost::max_element(view,
+			    [](const auto &p1, const auto &p2) {
+				return p1 < p2;});
+}
+
+#include <experimental/optional>
+#include <boost/range/adaptor/transformed.hpp>
+namespace helpers { // TODO: most of these are best implemented in a child class to view_t.
+    void add								(view_t          &view	, user_id_t u);
+    std::experimental::optional<view_t::iterator> get_by_id		(view_t          &view	, user_id_t u);
+    std::experimental::optional<view_t::const_iterator> get_by_id	(view_t const    &view	, user_id_t u);
+    bool contains							(view_t const    &view	, user_id_t u);
+    void remove								(view_t          &view	, user_id_t u);
+    auto get_ids = boost::adaptors::transformed([](slot const &a){return a.id;});
+}
+
+
     
 // [1] I could have used std::unordered_set<std::shared_ptr<abstract_user>>. I do not because I need to add to this container during construction. The problem is that I would need to inherit from std::enable_shared_from_this<abstract_user>, and then call shared_from_this(). However, it cannot be called during construction, otherwise bad_weak_ptr is thrown.
 
