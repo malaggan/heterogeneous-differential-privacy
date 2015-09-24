@@ -10,7 +10,6 @@
 #include <unordered_map>
 #include <set>
 #include <map>
-#include <experimental/optional>
 #include <boost/range/algorithm/set_algorithm.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/sum_kahan.hpp>
@@ -22,7 +21,7 @@ namespace helpers {
 		dataset_t load_dataset(std::string path);
 
 		// TODO: avoid global state
-		std::experimental::optional<dataset_t> dataset{std::experimental::nullopt};
+		option<dataset_t> dataset{nullopt};
 		std::unordered_map<user_id_t, std::vector<float>> privacy_weights;
 		// this global var caches the perturbed similarity values. to change the noise, application must be re-run.
 		std::map<std::pair<user_id_t, user_id_t>, float> similarities; // TODO: not using unordered_map to avoid defining hash for pair, but it would be faster.
@@ -132,7 +131,7 @@ namespace helpers {
 }
 
 template<typename RPS>
-auto vicinity<RPS>::send_gossip(std::experimental::optional<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
+auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
 	// send to peer with oldest time stamp
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer

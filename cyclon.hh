@@ -5,32 +5,32 @@
 
 class cyclon : public abstract_user
 {
+private:
+	void add(user_id_t u);
+	bool contains(user_id_t u) const;
+	void remove(user_id_t u);
+
+	user_id_t random_neighbor() const;
+	user_id_t random_replace(user_id_t id);
+
+	std::tuple<cyclon*, view_t> send_gossip(option<user_id_t> = nullopt) const;
+	void receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
+
+	void exchange_ids(cyclon &other);
+
+	option<view_t::iterator>
+	operator[](user_id_t u);
+
+	option<view_t::const_iterator>
+	operator[](user_id_t u) const;
+protected:
+	view_t view;
+	all_t &all_peers;
 public:
-    view_t view;
-    all_t &all_peers;
 
-    explicit cyclon(user_id_t me, set_t &already_joined, all_t &all_peers);
+	explicit cyclon(user_id_t me, set_t &already_joined, all_t &all_peers);
+	void print_view() const override;
 
-    void add(user_id_t u);
-    bool contains(user_id_t u) const;
-    void remove(user_id_t u);
-
-    user_id_t random_neighbor() const;
-    user_id_t random_replace(user_id_t id);
-
-    std::tuple<cyclon*, view_t> send_gossip(option<user_id_t> = nullopt) const;
-    void receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
-
-    void exchange_ids(cyclon &other);
-
-    option<view_t::iterator>
-    operator[](user_id_t u);
-
-    option<view_t::const_iterator>
-    operator[](user_id_t u) const;
-
-    void print_view() const override;
-
-    void do_gossip() override;
-    virtual ~cyclon() {}
+	void do_gossip() override;
+	virtual ~cyclon() {}
 };

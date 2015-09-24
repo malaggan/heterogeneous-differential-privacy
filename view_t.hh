@@ -2,6 +2,7 @@
 
 #include "conf.hh"
 #include "ventry_t.hh"
+#include "random_sample.tcc"
 #include <unordered_set>
 
 using view_base = std::unordered_set<ventry_t, ventry_t::hash, ventry_t::key_eq>;
@@ -43,6 +44,10 @@ public:
 	void remove                      (user_id_t u);
 
 	const_iterator get_oldest_peer() const;
+
+	auto random_element() const {
+		return *random_sample<>{}(*this | ::helpers::map_ids, 1).begin();
+	}
 };
 
 // TODO use boost::static_array (but with set semantics, if

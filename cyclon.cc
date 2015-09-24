@@ -39,6 +39,27 @@ using std::cend;
 using std::end;
 using std::tie;
 
+cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
+	: abstract_user{me}, view{}, all_peers{all_peers}
+{
+	auto bootstrapPeers = already_joined.random_subset(viewSize);
+	for(auto other : bootstrapPeers)
+	{
+		auto rps_other = dynamic_cast<cyclon*>(other);
+		assert(rps_other != nullptr);
+		// if the other's cyclon view is incomplete, swap selves:
+		if(rps_other->view.size() < viewSize)
+			exchange_ids(*rps_other);
+		else
+		{
+			auto removed = rps_other->random_replace(id);
+			if(contains(removed))
+				rps_other->add(id);
+			else
+				add(removed);
+		}
+	}
+}
 
 void cyclon::add(user_id_t u) {
 	view.add(u);
@@ -60,32 +81,8 @@ void cyclon::exchange_ids(cyclon &other) {
 	other.add(id);
 }
 
-cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
-	: abstract_user{me}, view{}, all_peers{all_peers}
-{
-	auto bootstrapPeers = random_sample<>()(already_joined, viewSize);
-	for(auto other : bootstrapPeers)
-	{
-		auto rps_other = dynamic_cast<cyclon*>(other);
-		assert(rps_other != nullptr);
-		// if the other's cyclon view is incomplete, swap selves:
-		if(rps_other->view.size() < viewSize)
-			exchange_ids(*rps_other);
-		else
-		{
-			auto removed = rps_other->random_replace(id);
-			if(contains(removed))
-				rps_other->add(id);
-			else
-				add(removed);
-		}
-	}
-}
-
-
-
 auto cyclon::random_neighbor() const -> user_id_t {
-	return *random_sample<>()(view | ::helpers::map_ids, 1).begin();
+	return view.random_element();
 }
 
 void cyclon::print_view() const {
