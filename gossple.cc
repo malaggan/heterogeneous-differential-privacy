@@ -27,7 +27,7 @@ int main()
 
     last = 0;
     std::cout << "Simulating cycles:";
-    for(auto i : range<std::vector, std::size_t>(20))
+    for(auto i : range<std::vector, std::size_t>(cycles))
     {
 	std::for_each(std::begin(joined_peers), std::end(joined_peers), std::mem_fn(&abstract_user::do_gossip));
     	int progress = (int)(100*i/(float)481);

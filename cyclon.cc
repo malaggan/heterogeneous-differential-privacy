@@ -41,137 +41,130 @@ using std::cend;
 using std::end;
 using std::tie;
 
-    
+
 void cyclon::add(user_id_t u) {
-    ::helpers::add(view, u);
+	view.add(u);
 }
 
 bool cyclon::contains(user_id_t u) const {
-    return ::helpers::contains(view, u);
+	return view.contains(u);
 }
 
-void cyclon::remove(user_id_t u) {    
-    ::helpers::remove(view, u);
+void cyclon::remove(user_id_t u) {
+	view.remove(u);
 }
 
-auto cyclon::operator[](user_id_t u)       -> optional<view_t::iterator>       { return ::helpers::get_by_id(view, u); }
-auto cyclon::operator[](user_id_t u) const -> optional<view_t::const_iterator> { return ::helpers::get_by_id(view, u); }
+auto cyclon::operator[](user_id_t u)       -> optional<view_t::iterator>       { return view.get_by_id(u); }
+auto cyclon::operator[](user_id_t u) const -> optional<view_t::const_iterator> { return view.get_by_id(u); }
 
 void cyclon::exchange_ids(cyclon &other) {
-    add(other.id); // age is zero
-    other.add(id);
+	add(other.id); // age is zero
+	other.add(id);
 }
 
-cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers) 
-    : abstract_user{me}, view{}, all_peers{all_peers}
+cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
+	: abstract_user{me}, view{}, all_peers{all_peers}
 {
-    auto bootstrapPeers = random_sample<>()(already_joined, viewSize);
-    for(auto other : bootstrapPeers)
-    {
-	auto rps_other = dynamic_cast<cyclon*>(other);
-	assert(rps_other != nullptr);
-	// if the other's cyclon view is incomplete, swap selves:
-	if(rps_other->view.size() < viewSize)
-	    exchange_ids(*rps_other);
-	else
-	{   
-	    auto removed = rps_other->random_replace(id);
-	    if(contains(removed))
-		rps_other->add(id);
-	    else
-		add(removed);
+	auto bootstrapPeers = random_sample<>()(already_joined, viewSize);
+	for(auto other : bootstrapPeers)
+	{
+		auto rps_other = dynamic_cast<cyclon*>(other);
+		assert(rps_other != nullptr);
+		// if the other's cyclon view is incomplete, swap selves:
+		if(rps_other->view.size() < viewSize)
+			exchange_ids(*rps_other);
+		else
+		{
+			auto removed = rps_other->random_replace(id);
+			if(contains(removed))
+				rps_other->add(id);
+			else
+				add(removed);
+		}
 	}
-    }
 }
 
 
 
 auto cyclon::random_neighbor() const -> user_id_t {
-    return *random_sample<>()(view | ::helpers::get_ids, 1).begin();
+	return *random_sample<>()(view | ::helpers::get_ids, 1).begin();
 }
 
 void cyclon::print_view() const {
-    copy(
-	view | ::helpers::get_ids,
-	make_function_output_iterator( 
-	    var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
-	);
-    cout << endl;
+	copy(
+		view | ::helpers::get_ids,
+		make_function_output_iterator(
+			var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
+		);
+	cout << endl;
 }
 
 auto cyclon::random_replace(user_id_t id) -> user_id_t {
-    auto victim = random_neighbor();
-    remove(victim);
-    add(id);
-    return victim;
+	auto victim = random_neighbor();
+	remove(victim);
+	add(id);
+	return victim;
 }
 
 auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
-    // 1. Increase by one the age of all neighbors.
-    for(auto &neighbor : view) // std::for_each ?
-	neighbor ++;
-    
-    // 2. Select neighbor Q with the highest age among all neighbors
-    auto dest = dest_opt.value_or(get_oldest_peer(view)->id);
-    // 2. Select L − 1 other random neighbors.
-    deque<view_t::key_type> myview{begin(view),end(view)};
-    copy_if(view, back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});
-    myview = random_sample<deque>()(myview, viewSize/2);
-    // 3. Replace Q’s entry with a new entry of age 0 and with my address.    
-    myview.emplace_front(id, 0);
-    return make_tuple(dynamic_cast<cyclon*>(all_peers[dest]), view_t{begin(myview), end(myview)});
+	// 1. Increase by one the age of all neighbors.
+	for(auto &neighbor : view) // std::for_each ?
+		neighbor ++;
+
+	// 2. Select neighbor Q with the highest age among all neighbors
+	auto dest = dest_opt.value_or(get_oldest_peer(view)->id);
+	// 2. Select L − 1 other random neighbors.
+	deque<view_t::key_type> myview{begin(view),end(view)};
+	copy_if(view, back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});
+	myview = random_sample<deque>()(myview, viewSize/2);
+	// 3. Replace Q’s entry with a new entry of age 0 and with my address.
+	myview.emplace_front(id, 0);
+	return make_tuple(dynamic_cast<cyclon*>(all_peers[dest]), view_t{begin(myview), end(myview)});
 }
 
 void cyclon::receive_gossip(
-    view_t to_be_received,
-    view_t was_sent) {
-    // 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
-    ::helpers::remove(to_be_received, id);
-    copy(to_be_received, std::inserter(view, end(view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set' . Instead:
-    //        auto it = std::unique(row.begin(), row.end()); row.resize(it - row.begin());
-    
-    //
-    // update age of entries contained in my view with those arriving !
-    for(auto const& a : to_be_received)
-    {
-	auto p = view.find(a);
-	if(p != end(view))
-	    p->update_age(a); 
-    }
-    // 7. Update my view to include all remaining entries, by firstly using empty view slots (if any) [[done above in `copy']],
-    // and secondly replacing entries among the ones sent to Q.
+	view_t to_be_received,
+	view_t was_sent) {
+	// 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
+	to_be_received.remove(id);
+	copy(to_be_received, std::inserter(view, end(view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set' . Instead:
+	//        auto it = std::unique(row.begin(), row.end()); row.resize(it - row.begin());
 
-    auto excess = view.size() - viewSize;
-    if(excess <= 0) return;
-    // remove elements from those sent to Q until size is within bounds
-    for(auto a  = begin(was_sent); a != end(was_sent) && excess > 0; excess--) // not using range-based for because I need an iterator for `erase'
-    {
-	auto p = view.find(*a);
-	if(p != end(view))
+	//
+	// update age of entries contained in my view with those arriving !
+	for(auto const& a : to_be_received)
 	{
-	    auto a_copy = a; // `a' will be invalidated when erased, and if so, it cannot be incremented
-	    a_copy ++;
-	    
-	    was_sent.erase(a);
-	    
-	    a = a_copy;
-	    
-	    view.erase(p);
+		auto p = view.find(a);
+		if(p != end(view))
+			p->update_age(a);
 	}
-	else
-	    a++;
-    }	       
+	// 7. Update my view to include all remaining entries, by firstly using empty view ventry_ts (if any) [[done above in `copy']],
+	// and secondly replacing entries among the ones sent to Q.
+
+	auto excess = view.size() - viewSize;
+	if(excess <= 0) return;
+	// remove elements from those sent to Q until size is within bounds
+	for(auto a  = begin(was_sent); a != end(was_sent) && excess > 0; excess--) // not using range-based for because I need an iterator for `erase'
+	{
+		auto p = view.find(*a);
+		if(p != end(view))
+		{
+			a = was_sent.erase(a); // assignment keeps the iterator valid by pointing to the next one
+			view.erase(p);
+		}
+		else
+			++a;
+	}
 }
 
 void cyclon::do_gossip() {
-    view_t to_send;
-    cyclon *target;
-    std::tie(target, to_send) = send_gossip();
+	view_t to_send;
+	cyclon *target;
+	std::tie(target, to_send) = send_gossip();
 
-    view_t to_receive;
-    std::tie(ignore, to_receive) = target->send_gossip(id);
+	view_t to_receive;
+	std::tie(ignore, to_receive) = target->send_gossip(id);
 
-    receive_gossip(to_receive, to_send);
-    target->receive_gossip(to_send, to_receive);
+	receive_gossip(to_receive, to_send);
+	target->receive_gossip(to_send, to_receive);
 }
-

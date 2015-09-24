@@ -1,59 +1,31 @@
 #pragma once
 
+#include "conf.hh"
 #include <unordered_map>
-#include <unordered_set>
 #include <functional>
-constexpr auto viewSize = 10u;
-constexpr auto cycles	= 20u;
+
+class abstract_user;
 
 // set_t key equality test
-class abstract_user;
 namespace std {
-    template <> struct equal_to<abstract_user*>
-    {
-	bool operator()(const abstract_user* a, const abstract_user* b) const;
-    };
+	template <> struct equal_to<abstract_user*>
+	{
+		bool operator()(const abstract_user* a, const abstract_user* b) const;
+	};
 }
 
-using user_id_t	= uint_fast32_t;
-using item_id_t	= uint_fast32_t;
-using age_t	= uint_fast32_t;
+#include "view_t.hh"
 
-struct slot {
-    user_id_t id;
-    mutable age_t age;
-    slot() : id{}, age{} {}
-    explicit slot(user_id_t id, age_t age) : id(id), age(age) {}
-    bool operator==(slot const& other) const {return      id == other.id  ; }
-    bool operator!=(slot const& other) const {return !(*this == other)    ; }
-    bool operator< (slot const& other) const {return     age <  other.age ; }
-    bool operator>=(slot const& other) const {return !(  age <  other.age); }
-    bool operator<=(slot const& other) const {return     age <= other.age ; }
-    bool operator> (slot const& other) const {return !(  age <= other.age); }
-    void reset_age() { age = 0; }
-    // age is the age of the user since he joined the network, not his age in the view
-    void update_age(slot const& other) const /* why const ? [2] */
-	{ age = std::max(age, other.age); }
-    struct hash {
-	std::size_t operator()(slot const& slot) const {
-	    return std::hash<user_id_t>()(slot.id); // "^ (std::hash<age_t>()(slot.age) << 1);" should not be used [2]. 
-	}
-    };
-    struct key_eq { bool operator()(slot const& a, slot const& b) const {return a.id == b.id; } };
-    void operator++(int) const { age++; }
-};
-
-using view_t	= std::unordered_set<slot, slot::hash, slot::key_eq>; // TODO use boost::static_array
 using set_t     = std::unordered_set<abstract_user*>; // [1]
 
 class abstract_user {
-public:  
-    user_id_t id;
-    explicit abstract_user(user_id_t id) : id{id} {}
+public:
+	user_id_t id;
+	explicit abstract_user(user_id_t id) : id{id} {}
 
-    virtual void do_gossip() = 0; // TODO : remember to user "override" in subclasses
-    virtual void print_view() const {}    
-    virtual ~abstract_user() {}
+	virtual void do_gossip() = 0; // TODO : remember to user "override" in subclasses
+	virtual void print_view() const {}
+	virtual ~abstract_user() {}
 };
 
 using all_t = std::unordered_map<user_id_t, abstract_user*>;
@@ -61,31 +33,16 @@ using all_t = std::unordered_map<user_id_t, abstract_user*>;
 #include <boost/range/algorithm/max_element.hpp>
 template<typename T>
 auto get_oldest_peer(T const &view) {
-    return boost::max_element(view,
-			    [](const auto &p1, const auto &p2) {
-				return p1 < p2;});
+	return boost::max_element(view,
+	                          [](const auto &p1, const auto &p2) {
+		                          return p1 < p2;});
 }
 
-#include <experimental/optional>
 #include <boost/range/adaptor/transformed.hpp>
-namespace helpers { // TODO: most of these are best implemented in a child class to view_t.
-    void add								(view_t          &view	, user_id_t u);
-    std::experimental::optional<view_t::iterator> get_by_id		(view_t          &view	, user_id_t u);
-    std::experimental::optional<view_t::const_iterator> get_by_id	(view_t const    &view	, user_id_t u);
-    bool contains							(view_t const    &view	, user_id_t u);
-    void remove								(view_t          &view	, user_id_t u);
-    auto get_ids = boost::adaptors::transformed([](slot const &a){return a.id;});
+namespace helpers {
+	auto get_ids = boost::adaptors::transformed([](ventry_t const &a){return a.id;});
 }
 
 
-    
+
 // [1] I could have used std::unordered_set<std::shared_ptr<abstract_user>>. I do not because I need to add to this container during construction. The problem is that I would need to inherit from std::enable_shared_from_this<abstract_user>, and then call shared_from_this(). However, it cannot be called during construction, otherwise bad_weak_ptr is thrown.
-
-
-// [2] generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [3]
-// Must make hash and equality depend only in the key (the id).
-
-// [3] In C++0x standard:
-// 23.2.4 Associative containers
-// 5 For set and multiset the value type is the same as the key type. For map and multimap it is equal to pair. Keys in an associative container are immutable.
-// 6 iterator of an associative container is of the bidirectional iterator category. For associative containers where the value type is the same as the key type, both iterator and const_iterator are constant iterators. It is unspecified whether or not iterator and const_iterator are the same type.
