@@ -223,8 +223,7 @@ void vicinity<RPS>::receive_gossip(
 
 	// keep only top `viewSize'. FIXME: should have removed duplicates, keeping oldest timestamp.
 	candidates.resize(viewSize);
-	view.clear();
-	view.insert(std::begin(candidates),std::end(candidates));
+	view.clear_and_assign(candidates);
 }
 
 template <typename RPS>
