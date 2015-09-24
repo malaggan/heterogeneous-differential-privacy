@@ -111,9 +111,8 @@ namespace helpers {
 
 		float similarity(user_id_t a,
 		                 user_id_t b) {
-
 			if(!dataset)
-				dataset = load_dataset("digg.txt");
+				dataset = make_option<>(load_dataset("digg.txt"));
 
 			return cached_similarity(a, b);
 		}
@@ -232,7 +231,7 @@ void vicinity<RPS>::do_gossip() {
 	std::tie(target, to_send) = send_gossip();
 
 	view_t to_receive;
-	std::tie(std::ignore, to_receive) = target->send_gossip(RPS::id);
+	std::tie(std::ignore, to_receive) = target->send_gossip(make_option<>(RPS::id));
 
 	receive_gossip(to_receive, to_send);
 	target->receive_gossip(to_send, to_receive);

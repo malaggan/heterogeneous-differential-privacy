@@ -12,7 +12,12 @@ template<typename T>
 class option : public base_opt<T> {
 	using base_opt<T>::base_opt; // inherit constructors
 public:
+	// make constructor explicit!
+	constexpr explicit option( const T& value ) : base_opt<T>{value} {}
+	constexpr explicit option( T&& value ) : base_opt<T>{std::move(value)} {}
+
 	// the Monad operation `bind'
+	// TODO: bind = fmap + join. I am missing the join. I.e. option<option<B>> -> option<B>
 	template <typename B>
 	option<B> bind(std::function<option<B>(T)> func) {
 		if(!*this)
@@ -34,4 +39,25 @@ template<typename T>
 constexpr option<std::decay_t<T>>
 make_option(T&& t) {
 	return option<std::decay_t<T>> { std::forward<T>(t) };
+}
+
+// --- find
+#include <boost/range/algorithm/find.hpp>
+// make find return option, instead of checking equality to end()
+namespace gossple {
+	template <typename Range, typename T>
+	auto find(Range &r, T const &val) -> option<decltype(boost::find(r, val))> {
+		auto it = boost::find(r, val);
+		if(it == std::end(r))
+			return nullopt;
+		return make_option<>(it);
+	}
+
+	template <typename Range, typename T>
+	auto find(Range const &r, T const &val) -> option<decltype(boost::find(r, val))> {
+		auto it = boost::find(r, val);
+		if(it == std::end(r))
+			return nullopt;
+		return make_option<>(it);
+	}
 }

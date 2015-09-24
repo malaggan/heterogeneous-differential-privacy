@@ -107,6 +107,7 @@ auto cyclon::send_gossip(option<user_id_t> dest_opt) const -> tuple<cyclon*, vie
 		neighbor ++;
 
 	// 2. Select neighbor Q with the highest age among all neighbors
+	assert(!view.empty());
 	auto dest = dest_opt.value_or(view.get_oldest_peer()->id);
 	// 2. Select L − 1 other random neighbors.
 	deque<view_t::key_type> myview{begin(view),end(view)};
@@ -158,7 +159,7 @@ void cyclon::do_gossip() {
 	std::tie(target, to_send) = send_gossip();
 
 	view_t to_receive;
-	std::tie(ignore, to_receive) = target->send_gossip(id);
+	std::tie(ignore, to_receive) = target->send_gossip(make_option<>(id));
 
 	receive_gossip(to_receive, to_send);
 	target->receive_gossip(to_send, to_receive);
