@@ -61,9 +61,6 @@ namespace helpers {
 
 inline bool operator==(ventry_t::cref v, user_id_t id) {return  v.id == id; }
 
-
-
-
 // [1] generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [2]
 // Must make hash and equality depend only in the key (the id).
 

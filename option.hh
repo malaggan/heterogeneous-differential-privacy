@@ -16,8 +16,14 @@ public:
 	constexpr explicit option( const T& value ) : base_opt<T>{value} {}
 	constexpr explicit option( T&& value ) : base_opt<T>{std::move(value)} {}
 
+  // bind = fmap + join. This is the join: option<option<B>> -> option<B>.
+	// TODO: test for option<option<option<T>>>
+	constexpr option( option<option<T>> const& o ) : base_opt<T>{nullopt} {
+		if(o)
+			*this = o.value();
+	}
+
 	// the Monad operation `bind'
-	// TODO: bind = fmap + join. I am missing the join. I.e. option<option<B>> -> option<B>
 	template <typename B>
 	option<B> bind(std::function<option<B>(T)> func) {
 		if(!*this)
