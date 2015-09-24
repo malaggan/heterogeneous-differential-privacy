@@ -164,10 +164,10 @@ auto vicinity<RPS>::send_gossip(std::experimental::optional<user_id_t> dest_opt)
 	// thess are the items to send
 	candidates.resize(viewSize/2);
 
-	auto oldest = get_oldest_peer(view);
+	auto oldest = view.get_oldest_peer();
 	if(oldest == view.end())
 	{
-		oldest = get_oldest_peer(RPS::view);
+		oldest = RPS::view.get_oldest_peer();
 		assert(oldest != end(RPS::view));
 	}
 	auto target = dest_opt.value_or(oldest->id);

@@ -19,8 +19,6 @@
 
 using boost::make_function_output_iterator;
 using std::experimental::make_optional;
-using std::experimental::optional;
-using std::experimental::nullopt;
 using boost::algorithm::copy_if;
 using boost::lambda::var;
 using std::back_inserter;
@@ -54,8 +52,8 @@ void cyclon::remove(user_id_t u) {
 	view.remove(u);
 }
 
-auto cyclon::operator[](user_id_t u)       -> optional<view_t::iterator>       { return view.get_by_id(u); }
-auto cyclon::operator[](user_id_t u) const -> optional<view_t::const_iterator> { return view.get_by_id(u); }
+auto cyclon::operator[](user_id_t u)       -> option<view_t::iterator>       { return view.get_by_id(u); }
+auto cyclon::operator[](user_id_t u) const -> option<view_t::const_iterator> { return view.get_by_id(u); }
 
 void cyclon::exchange_ids(cyclon &other) {
 	add(other.id); // age is zero
@@ -87,12 +85,12 @@ cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
 
 
 auto cyclon::random_neighbor() const -> user_id_t {
-	return *random_sample<>()(view | ::helpers::get_ids, 1).begin();
+	return *random_sample<>()(view | ::helpers::map_ids, 1).begin();
 }
 
 void cyclon::print_view() const {
 	copy(
-		view | ::helpers::get_ids,
+		view | ::helpers::map_ids,
 		make_function_output_iterator(
 			var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 		);
@@ -106,13 +104,13 @@ auto cyclon::random_replace(user_id_t id) -> user_id_t {
 	return victim;
 }
 
-auto cyclon::send_gossip(optional<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
+auto cyclon::send_gossip(option<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
 	// 1. Increase by one the age of all neighbors.
 	for(auto &neighbor : view) // std::for_each ?
 		neighbor ++;
 
 	// 2. Select neighbor Q with the highest age among all neighbors
-	auto dest = dest_opt.value_or(get_oldest_peer(view)->id);
+	auto dest = dest_opt.value_or(view.get_oldest_peer()->id);
 	// 2. Select L − 1 other random neighbors.
 	deque<view_t::key_type> myview{begin(view),end(view)};
 	copy_if(view, back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});

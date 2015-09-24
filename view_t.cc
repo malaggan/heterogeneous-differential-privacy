@@ -36,3 +36,8 @@ auto view_t::insert(const value_type& value) -> iterator {
 auto view_t::insert(const_iterator, const value_type& value) -> iterator {
 	return insert(value);
 }
+
+#include <boost/range/algorithm/max_element.hpp>
+auto view_t::get_oldest_peer() const -> const_iterator  {
+	return boost::max_element(*this);
+}

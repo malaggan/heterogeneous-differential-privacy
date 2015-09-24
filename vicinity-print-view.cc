@@ -16,7 +16,7 @@ using std::endl;
 template<typename RPS>
 void vicinity<RPS>::print_view() const {
     copy(
-	view | ::helpers::get_ids,
+	view | ::helpers::map_ids,
 	make_function_output_iterator( 
 	    var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 	);

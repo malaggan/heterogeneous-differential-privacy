@@ -2,6 +2,8 @@
 
 #include "conf.hh"
 
+#include <boost/range/adaptor/transformed.hpp>
+
 // view entry
 struct ventry_t {
 	ventry_t()                                 : id{}  , age{}    {}
@@ -36,6 +38,8 @@ struct ventry_t {
 		}
 	};
 
+	// --- Methods
+
 	void reset_age() { age = 0; }
 
 	// age is the age of the user since he joined the network, not his
@@ -50,7 +54,15 @@ struct ventry_t {
 	mutable age_t age;
 };
 
+// --- Convenience
+namespace helpers {
+	auto map_ids = boost::adaptors::transformed([](ventry_t const &a){return a.id;});
+}
+
 inline bool operator==(ventry_t::cref v, user_id_t id) {return  v.id == id; }
+
+
+
 
 // [1] generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [2]
 // Must make hash and equality depend only in the key (the id).

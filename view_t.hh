@@ -23,7 +23,7 @@ public:
 	void clear_and_assign(Range const& range) {
 		clear();
 		for(auto const& v : range)
-			insert(v);
+			insert(v); // delegate try_update to `insert'
 		// Would have preferred to use:
 		// insert(std::begin(range), std::end(range));
 		// but have to figure out a clean way to do try_update on each (using the `option' Monad).
@@ -41,6 +41,8 @@ public:
 	option<const_iterator> get_by_id (user_id_t u) const;
 	bool contains                    (user_id_t u) const;
 	void remove                      (user_id_t u);
+
+	const_iterator get_oldest_peer() const;
 };
 
 // TODO use boost::static_array (but with set semantics, if
