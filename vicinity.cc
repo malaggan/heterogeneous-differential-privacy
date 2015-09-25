@@ -1,7 +1,9 @@
 // Implementing: Voulgaris, S., & Van Steen, M. (2005). Epidemic-style management of semantic overlays for content-based searching. In Euro-Par 2005 Parallel Processing (pp. 1143-1152). Springer Berlin Heidelberg. (DOI: 10.1007/11549468_125)
 #include "vicinity.hh"
 #include "random.hh"
-#include </usr/include/boost/range/algorithm/partial_sort_copy.hpp>
+#include <boost/range/algorithm/partial_sort_copy.hpp>
+#include <boost/range/algorithm/copy.hpp>
+#include <boost/range/algorithm/sort.hpp>
 #include <boost/range/algorithm/transform.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <boost/range/algorithm_ext/for_each.hpp>
@@ -126,6 +128,15 @@ namespace helpers {
 		bool more_similar(T1 const &reference, T2 const& a, T2 const& b) {
 			return similarity(reference, a) > similarity(reference, b);
 		}
+
+		template<typename C, typename T>
+		struct semantic_comp {
+			C *ref;
+			explicit semantic_comp(C *ref) : ref{ref} {}
+			constexpr bool operator()(T const& a, T const& b) {
+				return helpers::more_similar<C, T>(*ref, a, b);
+			}
+		};
 	}
 }
 
@@ -138,6 +149,7 @@ auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<
 
 	std::vector<ventry_t> candidates(view.size() + RPS::view.size());
 
+	// TODO: use priority_queue
 	auto semantic_comp = std::bind(helpers::more_similar<vicinity<RPS>, ventry_t>,
 	                               *this,
 	                               std::placeholders::_1,
@@ -172,6 +184,7 @@ auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<
 	return std::make_tuple(dynamic_cast<vicinity<RPS>*>(RPS::all_peers[target]), view_t{begin(candidates), end(candidates)});
 }
 
+#include "priority_queue.hh"
 #define UNUSED(x)
 template<typename RPS>
 void vicinity<RPS>::receive_gossip(
@@ -185,43 +198,12 @@ void vicinity<RPS>::receive_gossip(
 	// 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
 	to_be_received.remove(RPS::id);
 
-	std::vector<ventry_t> candidates(view.size() + RPS::view.size() + to_be_received.size());
+	// keep only top `viewSize' (in terms of similarity to *this).
+	using sem = helpers::semantic_comp<vicinity<RPS>,ventry_t>;
+	using pq_t = priority_queue<ventry_t, viewSize, sem>;
+	view.clear_and_assign(pq_t{view, sem{this}}.push_all(RPS::view).push_all(to_be_received));
 
-	auto semantic_comp = std::bind(helpers::more_similar<vicinity<RPS>, ventry_t>,
-	                               *this,
-	                               std::placeholders::_1,
-	                               std::placeholders::_2);
-
-	boost::partial_sort_copy(
-		view,
-		candidates,
-		semantic_comp);
-
-	std::partial_sort_copy(
-		std::begin(RPS::view)               , std::end(RPS::view),
-		std::begin(candidates) + view.size(), std::end(candidates),
-		semantic_comp);
-
-	std::inplace_merge(
-		std::begin(candidates),
-		std::begin(candidates) + view.size(),
-		std::end(candidates) + view.size() + RPS::view.size(),
-		semantic_comp);
-
-	std::partial_sort_copy(
-		std::begin(to_be_received)                             , std::end(to_be_received),
-		std::begin(candidates) + view.size() + RPS::view.size(), std::end(candidates),
-		semantic_comp);
-
-	std::inplace_merge(
-		std::begin(candidates),
-		std::begin(candidates) + view.size() + RPS::view.size(),
-		std::end(candidates),
-		semantic_comp);
-
-	// keep only top `viewSize'. FIXME: should have removed duplicates, keeping oldest timestamp.
-	candidates.resize(viewSize);
-	view.clear_and_assign(candidates);
+	//. FIXME: should have removed duplicates, keeping oldest timestamp.
 }
 
 template <typename RPS>

@@ -11,12 +11,13 @@ int main()
 	all_t all_peers;
 	int last = 0;
 	std::cout << "Initializing peers:";
-	for(auto i : range<std::vector, std::size_t>(481)) // TODO: use boost irange
+	auto N = 481;
+	for(auto i : range<std::vector, std::size_t>(N)) // TODO: use boost irange
 	{
 		auto peer = new user{i, joined_peers, all_peers};
 		joined_peers.insert(peer);
 		all_peers[i] = peer;
-		int progress = (int)(100*i/(float)481);
+		int progress = (int)(100*i/(float)N);
 		if(progress > last)
 		{
 			last = progress;
@@ -30,7 +31,7 @@ int main()
 	for(auto i : range<std::vector, std::size_t>(cycles))
 	{
 		std::for_each(std::begin(joined_peers), std::end(joined_peers), std::mem_fn(&abstract_user::do_gossip));
-		int progress = (int)(100*i/(float)481);
+		int progress = (int)(100*i/(float)N);
 		if(progress > last)
 		{
 			last = progress;
