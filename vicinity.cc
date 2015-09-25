@@ -196,14 +196,14 @@ void vicinity<RPS>::receive_gossip(
 	// In case of multiple items from the same node, keep the one with the most recent timestamp
 
 	// 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
-	to_be_received.remove(RPS::id);
+	to_be_received.remove(RPS::id); // TODO: make remove() chainable
 
 	// keep only top `viewSize' (in terms of similarity to *this).
 	using sem = helpers::semantic_comp<vicinity<RPS>,ventry_t>;
 	using pq_t = priority_queue<ventry_t, viewSize, sem>;
 	view.clear_and_assign(pq_t{view, sem{this}}.push_all(RPS::view).push_all(to_be_received));
 
-	//. FIXME: should have removed duplicates, keeping oldest timestamp.
+	// TODO: FIXME: should have removed duplicates, keeping oldest timestamp.
 }
 
 template <typename RPS>
