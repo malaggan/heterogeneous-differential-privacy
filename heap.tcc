@@ -39,10 +39,9 @@ void sift_down(RandomAccessRange range, Comparator comp, heap_index root) {
 	option<size_t> left  = root
 		.left()
 		.bind<>(if_greater(some(root.first)));
-	option<size_t> right = root
+	root
 		.right()
-		.bind<>(if_greater(some(root.first)));
-	right.bind<>(if_greater(left))
+		.bind<>(if_greater(some(root.first))).bind<>(if_greater(left))
 		.self_or(left)
 		.bind(
 			[&](size_t victim){
@@ -60,7 +59,7 @@ void sift_down(RandomAccessRange range, Comparator comp) {
 template<typename RandomAccessRange, typename Comparator>
 void heapify(RandomAccessRange range, Comparator comp)
 {
-	auto range_size = boost::distance(range);
+	size_t range_size{boost::distance(range)};
 	for(size_t start = 0; start <= (range_size - 2) / 2; start++)
 		sift_down(range, comp, heap_index{(range_size - 2) / 2 - start, range_size});
 }
