@@ -41,7 +41,8 @@ void sift_down(RandomAccessRange range, Comparator comp, heap_index root) {
 		.bind<>(if_greater(some(root.first)));
 	root
 		.right()
-		.bind<>(if_greater(some(root.first))).bind<>(if_greater(left))
+		.bind<>(if_greater(some(root.first)))
+		.bind<>(if_greater(left))
 		.self_or(left)
 		.bind(
 			[&](size_t victim){
