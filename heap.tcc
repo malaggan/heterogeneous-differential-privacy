@@ -3,40 +3,64 @@
 // this is a min heap: top of heap is the minimum element
 // this is version 2 of heap.inl.h
 
+#include "option.hh"
 #include <utility> // for std::swap
+
 // sifts the node(at index start) down to the proper place such that all nodes below the start index are in heap order.
 // swap root with its min(left-if-exists, right-if-exists) if it is less than them
-template<typename RandomAccessIterator, typename T, typename Comparator>
-void sift_down(RandomAccessIterator values, T root, T end, Comparator comp) {
-	auto left = root * 2 + 1;
-	auto right = left + 1;
 
-	// keeps track of child to victim with
-	auto victim = root;
+struct heap_index {
+	size_t first; // index_of_first_element_in_the_range
+	size_t range_size;
+	option<size_t> validate(size_t index) { if(index >= range_size) return nullopt; return some(index); }
+	option<size_t> left() { // index_of_left_child_in_that_range
+		return some(first * 2 + 1)
+			.bind<>(std::function<option<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
+	} // TODO rename nullopt to none, to be consistent with some
+	option<size_t> right() { // index_of_right_child_in_that_range
+		return (left() + 1)
+			.bind<>(std::function<option<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
+	}
+	heap_index subtree(size_t new_first) {
+		return heap_index{new_first, range_size};
+	}
+};
 
-	// check if left child is bigger than the root
-	if (left < end &&
-	    comp(values[left], values[victim]))
-		victim = left;
-
-	// check if right child exists, and if it's bigger than what we're currently swapping with
-	if (right < end &&
-	    comp(values[right], values[victim]))
-		victim = right;
-
-	// (check if we need to victim at all)
-	if (victim == root)
-		return;
-
-	std::swap(values[root], values[victim]);
-
-	// tail recursion : repeat to continue sifting down the child now
-	sift_down(values, victim, end, comp);
+template<typename RandomAccessRange, typename Comparator>
+void sift_down(RandomAccessRange range, Comparator comp, heap_index root) {
+	std::function<std::function<option<size_t>(size_t)>(option<size_t>)> if_greater = [&](option<size_t> other) {
+		return std::function<option<size_t>(size_t)>{[&](size_t idx) -> option<size_t> {
+				if(not other or not comp(boost::begin(range)[idx], boost::begin(range)[other.value()]) )
+					return nullopt;
+				return some(idx);
+			}
+		};
+	};
+	option<size_t> left  = root
+		.left()
+		.bind<>(if_greater(some(root.first)));
+	option<size_t> right = root
+		.right()
+		.bind<>(if_greater(some(root.first)));
+	right.bind<>(if_greater(left))
+		.self_or(left)
+		.bind(
+			[&](size_t victim){
+				std::swap(boost::begin(range)[root.first],boost::begin(range)[victim]);
+				// tail recursion : repeat to continue sifting down the child now
+				sift_down(range, comp, root.subtree(victim));
+			});
 }
 
-template<typename RandomAccessIterator, typename T, typename Comparator>
-void heapify(RandomAccessIterator values, T k, Comparator comp)
+template<typename RandomAccessRange, typename Comparator>
+void sift_down(RandomAccessRange range, Comparator comp) {
+	sift_down(range, comp, heap_index{0, boost::distance(range)});
+}
+
+template<typename RandomAccessRange, typename Comparator>
+void heapify(RandomAccessRange range, Comparator comp)
 {
-	for(T start = 0; start <= (k - 2) / 2; start++)
-		sift_down(values, (k - 2) / 2 - start, k /* exclusive */, comp);
+	auto range_size = boost::distance(range);
+	for(size_t start = 0; start <= (range_size - 2) / 2; start++)
+		sift_down(range, comp, heap_index{(range_size - 2) / 2 - start, range_size});
 }

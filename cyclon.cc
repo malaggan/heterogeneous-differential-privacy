@@ -18,7 +18,6 @@
 #include <deque>
 
 using boost::make_function_output_iterator;
-using std::experimental::make_optional;
 using boost::algorithm::copy_if;
 using boost::lambda::var;
 using std::back_inserter;
@@ -159,7 +158,7 @@ void cyclon::do_gossip() {
 	std::tie(target, to_send) = send_gossip();
 
 	view_t to_receive;
-	std::tie(ignore, to_receive) = target->send_gossip(make_option<>(id));
+	std::tie(ignore, to_receive) = target->send_gossip(some(id));
 
 	receive_gossip(to_receive, to_send);
 	target->receive_gossip(to_send, to_receive);

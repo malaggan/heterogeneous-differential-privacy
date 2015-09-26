@@ -36,7 +36,7 @@ void view_t::remove(user_id_t u) {
 auto view_t::try_update(const value_type& value) -> option<iterator> {
 	return get_by_id(value.id).bind<iterator>(
 		[value](auto it) {
-			return it->update_age(value), make_option<>(it);
+			return it->update_age(value), some(it);
 		});
 }
 

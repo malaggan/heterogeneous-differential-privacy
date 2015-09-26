@@ -38,12 +38,20 @@ public:
 			return;
 		func(base_opt<T>::value());
 	}
+
+	// like value_or but sans unwrap.
+	// TODO: use universal ref
+	option<T> self_or(option<T> t) const {
+		if(!*this)
+			return t;
+		return *this;
+	}
 };
 
 #include <type_traits>
 template<typename T>
 constexpr option<std::decay_t<T>>
-make_option(T&& t) {
+some(T&& t) {
 	return option<std::decay_t<T>> { std::forward<T>(t) };
 }
 
@@ -56,7 +64,7 @@ namespace gossple {
 		auto it = boost::find(r, val);
 		if(it == std::end(r))
 			return nullopt;
-		return make_option<>(it);
+		return some(it);
 	}
 
 	template <typename Range, typename T>
@@ -64,6 +72,52 @@ namespace gossple {
 		auto it = boost::find(r, val);
 		if(it == std::end(r))
 			return nullopt;
-		return make_option<>(it);
+		return some(it);
 	}
 }
+
+// --- lift arithmetic operators to option. Cannot use a generic lift
+// function since it is only useful if "+" is a first class function,
+// not a built-in operator.
+
+// SFINAE to enable only on arithmetic types (or perhaps on any type with operator+ ?)
+#include <experimental/type_traits>
+#define option_lift_arith(op) template <typename T1, typename T2>                                   \
+std::enable_if_t<                                                                                   \
+     std::experimental::is_arithmetic_v<T1> and                                                     \
+	   std::experimental::is_arithmetic_v<T2>,                                                        \
+option<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(option<T1> a, option<T2> b) \
+{                                                                                                   \
+	if(a && b)                                                                                        \
+		return some(a.value() op b.value());                                                            \
+	return nullopt;                                                                                   \
+}                                                                                                   \
+template <typename T1, typename T2>                                                                 \
+std::enable_if_t<                                                                                   \
+     std::experimental::is_arithmetic_v<T1> and                                                     \
+	   std::experimental::is_arithmetic_v<T2>,                                                        \
+option<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(option<T1> a, T2 b)         \
+{                                                                                                   \
+	if(a)                                                                                             \
+		return some(a.value() op b);                                                                    \
+	return nullopt;                                                                                   \
+}                                                                                                   \
+template <typename T1, typename T2>                                                                 \
+std::enable_if_t<                                                                                   \
+     std::experimental::is_arithmetic_v<T1> and                                                     \
+	   std::experimental::is_arithmetic_v<T2>,                                                        \
+option<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(T1 a, option<T2> b)         \
+{                                                                                                   \
+	if(b)                                                                                             \
+		return some(a op b.value());                                                                    \
+	return nullopt;                                                                                   \
+}
+// XXX: Is "a && b" this the correct behaviour? What if the semantics
+// would be: if(!a) return b;, as in "a || b"?
+
+option_lift_arith(+)
+option_lift_arith(-)
+option_lift_arith(/)
+option_lift_arith(*)
+
+#undef option_lift_arith
