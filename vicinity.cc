@@ -1,6 +1,7 @@
 // Implementing: Voulgaris, S., & Van Steen, M. (2005). Epidemic-style management of semantic overlays for content-based searching. In Euro-Par 2005 Parallel Processing (pp. 1143-1152). Springer Berlin Heidelberg. (DOI: 10.1007/11549468_125)
 #include "vicinity.hh"
 #include "random.hh"
+#include "dataset.hh"
 #include <boost/range/algorithm/partial_sort_copy.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/range/algorithm/sort.hpp>
@@ -19,11 +20,6 @@
 namespace ba = boost::accumulators;
 namespace helpers {
 	namespace {
-		using dataset_t = std::vector<std::set<item_id_t>>; // has to be an ordered set for set_intersection later
-		dataset_t load_dataset(std::string path);
-
-		// TODO: avoid global state
-		option<dataset_t> dataset{nullopt};
 		std::unordered_map<user_id_t, std::vector<float>> privacy_weights;
 		// this global var caches the perturbed similarity values. to change the noise, application must be re-run.
 		std::map<std::pair<user_id_t, user_id_t>, float> similarities; // TODO: not using unordered_map to avoid defining hash for pair, but it would be faster.
@@ -198,46 +194,7 @@ auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<
 }
 
 
-#include <fstream>
-#include <iostream>
-#include <cassert>
-#include <functional>
 
-namespace helpers {
-	namespace {
-		// http://stackoverflow.com/a/16546151/397405
-		struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };
-
-		std::istream& operator>>(std::istream& in, item& p) { in >> p.first; in >> p.second; return in; }
-		dataset_t load_dataset(std::string path)
-		{
-			using namespace std;
-			using namespace std::placeholders;
-			auto f = ifstream{ path };
-			assert(f);
-			string signature;
-			f >> signature;
-			assert(signature == "dims");
-			uint_fast32_t user_count, item_count;
-			f >> user_count >> item_count;
-
-			using entry_t = set<uint_fast32_t>;
-			using list_t = vector<entry_t>;
-			list_t data(user_count);
-
-			for_each(istream_iterator<item>(f), istream_iterator<item>(),
-			         // bind(
-			         //    static_cast<pair<entry_t::iterator,bool> (entry_t::*) (const entry_t::value_type& )>(&entry_t::insert),
-			         //    bind(static_cast<list_t::reference (list_t::*)(list_t::size_type)>(&list_t::at), ref(data), bind(minus<void>(),bind(&item::first,_1),1)),
-			         //    bind(&item::second,_1)));
-			         [&data](item const& item) {
-				         data[item.first - 1].insert(item.second);
-			         });
-
-			return data;
-		}
-	}
-}
 // explicit instantiation
 #include "cyclon.hh"
 template void vicinity<cyclon>::do_gossip();
