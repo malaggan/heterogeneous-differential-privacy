@@ -1,6 +1,6 @@
 #include "view_t.hh"
 
-void view_t::add(user_id_t u) {
+view_t& view_t::add(user_id_t u) {
 	// age is monotonic, thus it is guaranteed that the existing ventry
 	// is older than or equal to 0. Therefore, we do not need to update
 	// it if it exists.
@@ -15,6 +15,7 @@ void view_t::add(user_id_t u) {
 		assert(it != end());
 		assert(size() > 0);
 	}
+	return *this;
 }
 
 auto view_t::get_by_id(user_id_t u) -> option<iterator> {
@@ -29,8 +30,9 @@ bool view_t::contains(user_id_t u) const {
 	return static_cast<bool>(get_by_id(u));
 }
 
-void view_t::remove(user_id_t u) {
+view_t& view_t::remove(user_id_t u) {
 	get_by_id(u).bind([this](auto it){ view_base::erase(it); });
+	return *this;
 }
 
 auto view_t::try_update(const value_type& value) -> option<iterator> {

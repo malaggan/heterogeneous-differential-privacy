@@ -37,11 +37,11 @@ public:
 
 	option<iterator> try_update(const value_type& value);
 
-	void add                         (user_id_t u);
+	view_t& add                      (user_id_t u);
 	option<iterator> get_by_id       (user_id_t u);
 	option<const_iterator> get_by_id (user_id_t u) const;
 	bool contains                    (user_id_t u) const;
-	void remove                      (user_id_t u);
+	view_t& remove                   (user_id_t u);
 
 	const_iterator get_oldest_peer() const;
 

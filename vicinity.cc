@@ -131,57 +131,13 @@ namespace helpers {
 
 		template<typename C, typename T>
 		struct semantic_comp {
-			C *ref;
-			explicit semantic_comp(C *ref) : ref{ref} {}
+			C const *ref;
+			/*explicit*/ semantic_comp(C const *ref) : ref{ref} {}
 			constexpr bool operator()(T const& a, T const& b) {
 				return helpers::more_similar<C, T>(*ref, a, b);
 			}
 		};
 	}
-}
-
-template<typename RPS>
-auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
-	// send to peer with oldest time stamp
-	// AGGRESSIVELY BIASED:
-	// Select the viewSize/2 items of nodes semantically closest to the selected peer
-	//   from the VICINITY view and the CYCLON view
-
-	std::vector<ventry_t> candidates(view.size() + RPS::view.size());
-
-	// TODO: use priority_queue
-	auto semantic_comp = std::bind(helpers::more_similar<vicinity<RPS>, ventry_t>,
-	                               *this,
-	                               std::placeholders::_1,
-	                               std::placeholders::_2);
-
-	boost::partial_sort_copy(
-		view,
-		candidates, // std::begin(candidates) + view.size(), // do not need the verbosity. items copied are exactly min(size1, size2)
-		semantic_comp);
-
-	std::partial_sort_copy(
-		std::begin(RPS::view)               , std::end(RPS::view),
-		std::begin(candidates) + view.size(), std::end(candidates),
-		semantic_comp);
-
-	std::inplace_merge(
-		std::begin(candidates),
-		std::begin(candidates) + view.size(),
-		std::end(candidates),
-		semantic_comp);
-
-	// thess are the items to send
-	candidates.resize(viewSize/2);
-
-	auto oldest = view.get_oldest_peer();
-	if(oldest == view.end())
-	{
-		oldest = RPS::view.get_oldest_peer();
-		assert(oldest != end(RPS::view));
-	}
-	auto target = dest_opt.value_or(oldest->id);
-	return std::make_tuple(dynamic_cast<vicinity<RPS>*>(RPS::all_peers[target]), view_t{begin(candidates), end(candidates)});
 }
 
 #include "priority_queue.hh"
@@ -196,12 +152,12 @@ void vicinity<RPS>::receive_gossip(
 	// In case of multiple items from the same node, keep the one with the most recent timestamp
 
 	// 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
-	to_be_received.remove(RPS::id); // TODO: make remove() chainable
 
 	// keep only top `viewSize' (in terms of similarity to *this).
-	using sem = helpers::semantic_comp<vicinity<RPS>,ventry_t>;
-	using pq_t = priority_queue<ventry_t, viewSize, sem>;
-	view.clear_and_assign(pq_t{view, sem{this}}.push_all(RPS::view).push_all(to_be_received));
+	view.clear_and_assign(
+		priority_queue<ventry_t, viewSize, helpers::semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
+		.push_all(RPS::view)
+		.push_all(to_be_received.remove(RPS::id)));
 
 	// TODO: FIXME: should have removed duplicates, keeping oldest timestamp.
 }
@@ -219,6 +175,27 @@ void vicinity<RPS>::do_gossip() {
 	target->receive_gossip(to_send, to_receive);
 }
 
+template<typename RPS>
+auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
+	// send to peer with oldest time stamp
+	// AGGRESSIVELY BIASED:
+	// Select the viewSize/2 items of nodes semantically closest to the selected peer
+	//   from the VICINITY view and the CYCLON view
+
+	view_t candidates;
+	candidates.clear_and_assign(
+		priority_queue<ventry_t, viewSize/2, helpers::semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
+		.push_all(RPS::view));
+
+	auto oldest = view.get_oldest_peer();
+	if(oldest == view.end()) // TODO: make get_oldest_peer return option<> then use self_or then value (and let it throw if nullopt)
+	{
+		oldest = RPS::view.get_oldest_peer();
+		assert(oldest != end(RPS::view));
+	}
+	auto target = dest_opt.value_or(oldest->id);
+	return std::make_tuple(dynamic_cast<vicinity<RPS>*>(RPS::all_peers[target]), candidates);
+}
 
 
 #include <fstream>
