@@ -61,6 +61,7 @@ template<typename RandomAccessRange, typename Comparator>
 void heapify(RandomAccessRange range, Comparator comp)
 {
 	size_t range_size{boost::distance(range)};
+	if(range_size <= 1) return; // empty or 1-element heap is vacuously heapified
 	for(size_t start = 0; start <= (range_size - 2) / 2; start++)
 		sift_down(range, comp, heap_index{(range_size - 2) / 2 - start, range_size});
 }

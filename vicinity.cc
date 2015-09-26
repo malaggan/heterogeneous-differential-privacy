@@ -182,19 +182,19 @@ auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer
 	//   from the VICINITY view and the CYCLON view
 
-	view_t candidates;
-	candidates.clear_and_assign(
-		priority_queue<ventry_t, viewSize/2, helpers::semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
-		.push_all(RPS::view));
-
-	auto oldest = view.get_oldest_peer();
-	if(oldest == view.end()) // TODO: make get_oldest_peer return option<> then use self_or then value (and let it throw if nullopt)
-	{
-		oldest = RPS::view.get_oldest_peer();
-		assert(oldest != end(RPS::view));
-	}
-	auto target = dest_opt.value_or(oldest->id);
-	return std::make_tuple(dynamic_cast<vicinity<RPS>*>(RPS::all_peers[target]), candidates);
+	return std::make_tuple(
+		dynamic_cast<vicinity<RPS>*>(
+			RPS::all_peers[
+				dest_opt
+				.value_or(
+					view.get_oldest_peer()
+					.self_or(
+						RPS::view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
+					.value()->id)]),
+		view_t{}
+		.clear_and_assign(
+			priority_queue<ventry_t, viewSize/2, helpers::semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
+			.push_all(RPS::view)));
 }
 
 

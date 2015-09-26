@@ -107,7 +107,7 @@ auto cyclon::send_gossip(option<user_id_t> dest_opt) const -> tuple<cyclon*, vie
 
 	// 2. Select neighbor Q with the highest age among all neighbors
 	assert(!view.empty());
-	auto dest = dest_opt.value_or(view.get_oldest_peer()->id);
+	auto dest = dest_opt.value_or(view.get_oldest_peer().value()->id);
 	// 2. Select L − 1 other random neighbors.
 	deque<view_t::key_type> myview{begin(view),end(view)};
 	copy_if(view, back_inserter<>(myview), [dest](auto const&p){return p.id != dest;});

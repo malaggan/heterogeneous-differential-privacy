@@ -21,13 +21,14 @@ public:
 	using type = value_type; // so boost can treat (*this) as a range
 
 	template<typename Range>
-	void clear_and_assign(Range const& range) {
+	view_t& clear_and_assign(Range const& range) {
 		clear();
 		for(auto const& v : range)
 			insert(v); // delegate try_update to `insert'
 		// Would have preferred to use:
 		// insert(std::begin(range), std::end(range));
 		// but have to figure out a clean way to do try_update on each (using the `option' Monad).
+		return *this;
 	}
 
 	iterator insert(const value_type& value);
@@ -43,7 +44,7 @@ public:
 	bool contains                    (user_id_t u) const;
 	view_t& remove                   (user_id_t u);
 
-	const_iterator get_oldest_peer() const;
+	option<const_iterator> get_oldest_peer() const;
 
 	auto random_element() const {
 		return *random_sample<>{}(*this | ::helpers::map_ids, 1).begin();
