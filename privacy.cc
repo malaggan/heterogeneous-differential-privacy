@@ -17,16 +17,16 @@
 
 namespace ba = boost::accumulators;
 
-std::unordered_map<user_id_t, std::vector<float>> privacy_weights;
+std::unordered_map<user_id_t, std::unordered_map<item_id_t, float>>  privacy_weights; // user's privacy preference of all items
 // this global var caches the perturbed similarity values. to change the noise, application must be re-run.
 std::map<std::pair<user_id_t, user_id_t>, float> similarities; // TODO: not using unordered_map to avoid defining hash for pair, but it would be faster.
 
 template <typename Distribution>
 void generate_weights(user_id_t id, Distribution pc) {
 	assert(privacy_weights[id].empty());
-	std::generate_n(std::back_inserter<>(privacy_weights[id]),
-	                dataset.value()[id].size(),
-	                std::bind(pc, rng));  // random weights , if not already generated
+	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
+	for(item_id_t const & item : dataset.value()[id])
+		privacy_weights[id][item] = pc(rng);
 }
 
 enum class privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2 };
@@ -65,12 +65,11 @@ std::vector<float> weights_of(user_id_t id, std::vector<item_id_t> const & subse
 	// subset                 : 3   -   195 -
 	// privacy_weights(vector): 0.5 1.0 0.3 0.24
 	// return value           : 0.5     0.3 (in that order)
-	// for every subset item, find index in set, append privacy_weight at that index
+	// for every subset item, find index in set, append privacy_weight at that index// a map would be better
 	std::vector<float> v;
-	for(auto const &subset_item : subset) {
-		auto index = std::distance(std::begin(dataset.value()[id]), dataset.value()[id].find(subset_item));
-		v.push_back(privacy_weights[id][index]);
-	}
+	for(auto const &subset_item : subset)
+		v.push_back(privacy_weights[id][subset_item]);
+
 	return v;
 }
 

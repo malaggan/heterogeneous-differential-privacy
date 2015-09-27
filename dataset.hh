@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 
-using dataset_t = std::vector<std::set<item_id_t>>; // TODO: has to be an ordered set for set_intersection later
+using dataset_t = std::vector<std::vector<item_id_t>>;
 
 extern option<dataset_t> dataset; // TODO: avoid global state
 

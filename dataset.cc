@@ -23,7 +23,7 @@ dataset_t load_dataset(std::string path)
 	uint_fast32_t user_count, item_count;
 	f >> user_count >> item_count;
 
-	using entry_t = set<uint_fast32_t>;
+	using entry_t = vector<uint_fast32_t>;
 	using list_t = vector<entry_t>;
 	list_t data(user_count);
 
@@ -33,7 +33,7 @@ dataset_t load_dataset(std::string path)
 	         //    bind(static_cast<list_t::reference (list_t::*)(list_t::size_type)>(&list_t::at), ref(data), bind(minus<void>(),bind(&item::first,_1),1)),
 	         //    bind(&item::second,_1)));
 	         [&data](item const& item) {
-		         data[item.first - 1].insert(item.second);
+		         data[item.first - 1].push_back(item.second);
 	         });
 
 	return data;
