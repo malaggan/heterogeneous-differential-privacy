@@ -1,7 +1,7 @@
 #pragma once
 
 #include "conf.hh"
-#include "ventry_t.hh"
+#include "ventry.hh"
 #include "random_sample.tcc"
 #include <unordered_set>
 

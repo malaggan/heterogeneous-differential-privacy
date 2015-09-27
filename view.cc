@@ -1,4 +1,4 @@
-#include "view_t.hh"
+#include "view.hh"
 
 view_t& view_t::add(user_id_t u) {
 	// age is monotonic, thus it is guaranteed that the existing ventry

@@ -4,7 +4,6 @@
 #include "cyclon.hh"
 #include "range.tcc"
 
-
 #include <boost/function_output_iterator.hpp>
 #include <boost/range/algorithm/find_if.hpp>
 #include <boost/algorithm/cxx11/copy_if.hpp>

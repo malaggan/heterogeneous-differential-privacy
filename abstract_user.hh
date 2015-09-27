@@ -6,7 +6,7 @@
 
 class abstract_user;
 
-#include "view_t.hh"
+#include "view.hh"
 
 using all_t     = std::unordered_map<user_id_t, abstract_user*>;
 

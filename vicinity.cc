@@ -1,15 +1,8 @@
 // Implementing: Voulgaris, S., & Van Steen, M. (2005). Epidemic-style management of semantic overlays for content-based searching. In Euro-Par 2005 Parallel Processing (pp. 1143-1152). Springer Berlin Heidelberg. (DOI: 10.1007/11549468_125)
 #include "vicinity.hh"
 #include "privacy.hh" // TODO: a better name is "similarity"
-#include <boost/range/algorithm/partial_sort_copy.hpp>
-#include <boost/range/algorithm/copy.hpp>
-#include <boost/range/algorithm/sort.hpp>
-#include <boost/range/algorithm/transform.hpp>
-#include <boost/range/algorithm/for_each.hpp>
-#include <boost/range/algorithm_ext/for_each.hpp>
-#include <set>
-
 #include "priority_queue.hh"
+
 #define UNUSED(x)
 template<typename RPS>
 void vicinity<RPS>::receive_gossip(
