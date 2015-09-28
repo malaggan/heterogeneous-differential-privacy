@@ -2,7 +2,9 @@
 
 #include "abstract_user.hh"
 
-using set_base     = std::unordered_set<abstract_user*, abstract_user::hash, abstract_user::key_eq>; // [1]
+using set_base     = std::unordered_set<abstract_user*,
+                                        abstract_user::hash,
+                                        abstract_user::key_eq>; // [1]
 
 #include "random_sample.tcc"
 

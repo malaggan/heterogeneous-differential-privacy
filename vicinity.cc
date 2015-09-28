@@ -17,7 +17,7 @@ void vicinity<RPS>::receive_gossip(
 
 	// keep only top `viewSize' (in terms of similarity to *this).
 	view.clear_and_assign(
-		priority_queue<ventry_t, viewSize, semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
+		priority_queue<ventry, viewSize, semantic_comp<vicinity<RPS>,ventry>>{view, this}
 		.push_all(RPS::view)
 		.push_all(to_be_received.remove(RPS::id)));
 
@@ -55,7 +55,7 @@ auto vicinity<RPS>::send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<v
 					.value()->id)]),
 		view_t{}
 		.clear_and_assign(
-			priority_queue<ventry_t, viewSize/2, semantic_comp<vicinity<RPS>,ventry_t>>{view, this}
+			priority_queue<ventry, viewSize/2, semantic_comp<vicinity<RPS>,ventry>>{view, this}
 			.push_all(RPS::view)));
 }
 

@@ -1,6 +1,7 @@
+#include "conf.hh"
+
 #include "dataset.hh"
 #include "random.hh" // access to the unique global randomness generator for reproducibility.
-#include "option.hh"
 #include <boost/accumulators/statistics/sum_kahan.hpp>
 #include <boost/range/algorithm/set_algorithm.hpp>
 #include <boost/range/algorithm_ext/for_each.hpp>

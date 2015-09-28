@@ -132,7 +132,7 @@ void cyclon::receive_gossip(
 		if(p != end(view))
 			p->update_age(a);
 	}
-	// 7. Update my view to include all remaining entries, by firstly using empty view ventry_ts (if any) [[done above in `copy']],
+	// 7. Update my view to include all remaining entries, by firstly using empty view ventrys (if any) [[done above in `copy']],
 	// and secondly replacing entries among the ones sent to Q.
 
 	auto excess = view.size() - viewSize;
