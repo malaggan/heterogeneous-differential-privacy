@@ -6,19 +6,19 @@
 
 // view entry
 struct ventry_t {
-	ventry_t()                                 : id{}  , age{}    {} // FIXME: do we need a default ctor?
-	explicit ventry_t(user_id_t id, age_t age) : id{id}, age{age} {}
+	constexpr ventry_t()                                 : id{}  , age{}    {} // FIXME: do we need a default ctor?
+	constexpr explicit ventry_t(user_id_t id, age_t age) : id{id}, age{age} {}
 	using cref = ventry_t const&;
 
 	// --- Comparison operators
 	// Equivalence depends on ID only, while comparison depends on age only.
-	bool operator==(cref other) const {return  id == other.id  ; }
-	bool operator!=(cref other) const {return  id != other.id  ; }
+	constexpr bool operator==(cref other) const {return  id == other.id  ; }
+	constexpr bool operator!=(cref other) const {return  id != other.id  ; }
 
-	bool operator< (cref other) const {return age <  other.age ; }
-	bool operator<=(cref other) const {return age <= other.age ; }
-	bool operator> (cref other) const {return age >  other.age ; }
-	bool operator>=(cref other) const {return age >= other.age ; }
+	constexpr bool operator< (cref other) const {return age <  other.age ; }
+	constexpr bool operator<=(cref other) const {return age <= other.age ; }
+	constexpr bool operator> (cref other) const {return age >  other.age ; }
+	constexpr bool operator>=(cref other) const {return age >= other.age ; }
 
 	// --- Hashing (for unordered_set). Depend on ID only, since no
 	// duplicates are allowed.  For correctness, when two ventry_t's
@@ -26,29 +26,30 @@ struct ventry_t {
 	// outside of the scope of this class and should be handled in the
 	// container. TODO
 	struct hash {
-		std::size_t operator()(cref view_entry) const {
-			return std::hash<user_id_t>()(view_entry.id);
+		constexpr std::size_t operator()(cref view_entry) const {
+			return view_entry.id;
 		}
 	};
 
 	// --- Key equality (for unordered_set)
 	struct key_eq {
-		bool operator()(cref a, cref b) const {
+		constexpr bool operator()(cref a, cref b) const {
 			return a.id == b.id;
 		}
 	};
 
 	// --- Methods
 
-	void reset_age() { age = 0; }
+	constexpr ventry_t& reset_age() { age = 0; return *this; }
 
 	// age is the age of the user since he joined the network, not his
 	// age in the view
-	void update_age(cref other) const { /* why const ? [1] */
+	constexpr ventry_t const& update_age(cref other) const { /* why const ? [1] */
 		age = std::max(age, other.age);
+		return *this;
 	}
 
-	void operator++(int) const { age++; }
+	constexpr void operator++(int) const { age++; }
 
 	user_id_t     id;
 	mutable age_t age;
@@ -56,10 +57,10 @@ struct ventry_t {
 
 // --- Convenience
 namespace helpers {
-	auto map_ids = boost::adaptors::transformed([](ventry_t const &a){return a.id;});
+	auto map_ids = boost::adaptors::transformed([](ventry_t const &a){return a.id;}); // TODO: use constexpr accessor mem_fn
 }
 
-inline bool operator==(ventry_t::cref v, user_id_t id) {return  v.id == id; }
+constexpr inline bool operator==(ventry_t::cref v, user_id_t id) {return  v.id == id; }
 
 // [1] generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [2]
 // Must make hash and equality depend only in the key (the id).

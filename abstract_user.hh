@@ -15,20 +15,21 @@ public:
 	user_id_t id;
 public:
 	struct hash {
-		std::size_t operator()(abstract_user const *u) const {
-			return std::hash<user_id_t>()(u->id);
+		constexpr std::size_t operator()(abstract_user const *u) const {
+			return u->id;
 		}
 	};
 
 	// --- Key equality (for unordered_set)
 	struct key_eq {
-		bool operator()(abstract_user const *a, abstract_user const *b) const {
+		constexpr bool operator()(abstract_user const *a, abstract_user const *b) const {
 			return a->id == b->id;
 		}
 	};
 
-	explicit abstract_user(user_id_t id) : id{id} {}
+	constexpr explicit abstract_user(user_id_t id) : id{id} {}
 
+	// TODO: use static polymorphism
 	virtual void do_gossip() = 0; // TODO : remember to user "override" in subclasses. TODO convert to coroutine
 	virtual void print_view() const {}
 	virtual ~abstract_user() {}
