@@ -71,8 +71,8 @@ void cyclon::remove(user_id_t u) {
 	view.remove(u);
 }
 
-auto cyclon::operator[](user_id_t u)       -> option<view_t::iterator>       { return view.get_by_id(u); }
-auto cyclon::operator[](user_id_t u) const -> option<view_t::const_iterator> { return view.get_by_id(u); }
+auto cyclon::operator[](user_id_t u)       -> maybe<view_t::iterator>       { return view.get_by_id(u); }
+auto cyclon::operator[](user_id_t u) const -> maybe<view_t::const_iterator> { return view.get_by_id(u); }
 
 void cyclon::exchange_ids(cyclon &other) {
 	add(other.id); // age is zero
@@ -99,7 +99,7 @@ auto cyclon::random_replace(user_id_t id) -> user_id_t {
 	return victim;
 }
 
-auto cyclon::send_gossip(option<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
+auto cyclon::send_gossip(maybe<user_id_t> dest_opt) const -> tuple<cyclon*, view_t> {
 	// 1. Increase by one the age of all neighbors.
 	for(auto &neighbor : view) // std::for_each ?
 		neighbor ++;

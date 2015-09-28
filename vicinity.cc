@@ -38,7 +38,7 @@ void vicinity<RPS>::do_gossip() {
 }
 
 template<typename RPS>
-auto vicinity<RPS>::send_gossip(option<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
+auto vicinity<RPS>::send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<vicinity<RPS>*, view_t> {
 	// send to peer with oldest time stamp
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer

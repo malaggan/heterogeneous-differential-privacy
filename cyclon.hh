@@ -13,15 +13,15 @@ private:
 	user_id_t random_neighbor() const;
 	user_id_t random_replace(user_id_t id);
 
-	std::tuple<cyclon*, view_t> send_gossip(option<user_id_t> = nullopt) const;
+	std::tuple<cyclon*, view_t> send_gossip(maybe<user_id_t> = none) const;
 	void receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
 
 	void exchange_ids(cyclon &other);
 
-	option<view_t::iterator>
+	maybe<view_t::iterator>
 	operator[](user_id_t u);
 
-	option<view_t::const_iterator>
+	maybe<view_t::const_iterator>
 	operator[](user_id_t u) const;
 protected:
 	view_t view;

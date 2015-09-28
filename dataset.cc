@@ -5,7 +5,7 @@
 #include <cassert>
 #include <functional>
 
-option<dataset_t> dataset{nullopt};
+maybe<dataset_t> dataset{none};
 
 // http://stackoverflow.com/a/16546151/397405
 struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };

@@ -11,14 +11,14 @@
 struct heap_index {
 	size_t first; // index_of_first_element_in_the_range
 	size_t range_size;
-	option<size_t> validate(size_t index) { if(index >= range_size) return nullopt; return some(index); }
-	option<size_t> left() { // index_of_left_child_in_that_range
+	maybe<size_t> validate(size_t index) { if(index >= range_size) return none; return some(index); }
+	maybe<size_t> left() { // index_of_left_child_in_that_range
 		return some(first * 2 + 1)
-			.bind<>(std::function<option<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
-	} // TODO rename nullopt to none, to be consistent with some
-	option<size_t> right() { // index_of_right_child_in_that_range
+			.bind<>(std::function<maybe<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
+	} // TODO rename none to none, to be consistent with some
+	maybe<size_t> right() { // index_of_right_child_in_that_range
 		return (left() + 1)
-			.bind<>(std::function<option<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
+			.bind<>(std::function<maybe<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
 	}
 	heap_index subtree(size_t new_first) {
 		return heap_index{new_first, range_size};
@@ -29,22 +29,22 @@ template <typename T> using fn = std::function<T>;
 
 template<typename RandomAccessRange, typename Comparator>
 void sift_down(RandomAccessRange range, Comparator comp, heap_index root) {
-	using f1 = fn<fn<option<size_t>(size_t)>(option<size_t>)>;
-  using f2 = fn<option<size_t>(size_t)>;
+	using f1 = fn<fn<maybe<size_t>(size_t)>(maybe<size_t>)>;
+  using f2 = fn<maybe<size_t>(size_t)>;
   f1 if_greater =
-		[&](option<size_t> other) {
+		[&](maybe<size_t> other) {
 		return f2{
-			[&comp,&range,other/*the bug: was capturing other by ref on expired stack frame...*/](size_t idx) -> option<size_t> {
-				if(not other) return nullopt;
+			[&comp,&range,other/*the bug: was capturing other by ref on expired stack frame...*/](size_t idx) -> maybe<size_t> {
+				if(not other) return none;
 				auto const &a = boost::begin(range)[idx];
 				auto const &b = boost::begin(range)[other.value()];
 				if(not comp(a, b))
-					return nullopt;
+					return none;
 				return some(idx);
 			}
 		};
 	};
-	option<size_t> left  = root
+	maybe<size_t> left  = root
 		.left()
 		.bind<>(if_greater(some(root.first)));
 	root

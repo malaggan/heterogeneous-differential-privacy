@@ -18,11 +18,11 @@ view_t& view_t::add(user_id_t u) {
 	return *this;
 }
 
-auto view_t::get_by_id(user_id_t u) -> option<iterator> {
+auto view_t::get_by_id(user_id_t u) -> maybe<iterator> {
 	return gossple::find(*this, u); // NOTE: depends that equality for ventry is on ID
 }
 
-auto view_t::get_by_id(user_id_t u) const -> option<const_iterator> {
+auto view_t::get_by_id(user_id_t u) const -> maybe<const_iterator> {
 	return gossple::find(*this, u);
 }
 
@@ -35,7 +35,7 @@ view_t& view_t::remove(user_id_t u) {
 	return *this;
 }
 
-auto view_t::try_update(const value_type& value) -> option<iterator> {
+auto view_t::try_update(const value_type& value) -> maybe<iterator> {
 	return get_by_id(value.id).bind<iterator>(
 		[value](auto it) {
 			return it->update_age(value), some(it);
@@ -51,7 +51,7 @@ auto view_t::insert(const_iterator, const value_type& value) -> iterator {
 }
 
 #include <boost/range/algorithm/max_element.hpp>
-auto view_t::get_oldest_peer() const -> option<const_iterator>  {
-	if(empty()) return nullopt;
+auto view_t::get_oldest_peer() const -> maybe<const_iterator>  {
+	if(empty()) return none;
 	return some(boost::max_element(*this));
 }
