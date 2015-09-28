@@ -13,18 +13,25 @@
 #include <utility> // for std::pair
 #include <cassert>
 #include <vector>
-#include <map>
 
 namespace ba = boost::accumulators;
 
 std::unordered_map<user_id_t, std::unordered_map<item_id_t, float>>  privacy_weights; // user's privacy preference of all items
+
+struct pair_uids_hash {
+	std::size_t operator()(std::pair<user_id_t, user_id_t> p) const {
+		return std::hash<user_id_t>()(p.first) ^ std::hash<user_id_t>()(p.second);
+	}
+};
+
 // this global var caches the perturbed similarity values. to change the noise, application must be re-run.
-std::map<std::pair<user_id_t, user_id_t>, float> similarities; // TODO: not using unordered_map to avoid defining hash for pair, but it would be faster.
+std::unordered_map<std::pair<user_id_t, user_id_t>, float, pair_uids_hash> similarities;
 
 template <typename Distribution>
 void generate_weights(user_id_t id, Distribution pc) {
 	assert(privacy_weights[id].empty());
 	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
+	assert(id < dataset.value().size());
 	for(item_id_t const & item : dataset.value()[id])
 		privacy_weights[id][item] = pc(rng);
 }
@@ -84,6 +91,8 @@ float cached_similarity(user_id_t a, user_id_t b) {
 		return similarities[id];
 
 	std::vector<item_id_t> intersection;
+	assert(a < dataset.value().size());
+	assert(b < dataset.value().size());
 	boost::set_intersection(dataset.value()[a], dataset.value()[b], std::back_inserter<>(intersection));
 
 	ba::accumulator_set<float, ba::features<ba::tag::sum_kahan>> acc;
@@ -107,6 +116,7 @@ float similarity(user_id_t a,
                  user_id_t b) {
 	if(!dataset)
 		dataset = some(load_dataset("digg.txt"));
-
+	assert(a < dataset.value().size());
+	assert(b < dataset.value().size());
 	return cached_similarity(a, b);
 }

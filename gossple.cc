@@ -18,7 +18,7 @@ int main()
 		auto peer = new user{i, joined_peers, all_peers};
 		joined_peers.insert(peer);
 		all_peers[i] = peer;
-		int progress = (int)(100*i/(float)N);
+		int progress = static_cast<int>(100*i/static_cast<float>(N));
 		if(progress > last)
 		{
 			last = progress;
@@ -32,7 +32,7 @@ int main()
 	for(auto i : range<std::vector, std::size_t>(cycles))
 	{
 		std::for_each(std::begin(joined_peers), std::end(joined_peers), std::mem_fn(&abstract_user::do_gossip));
-		int progress = (int)(100*i/(float)N);
+		int progress = static_cast<int>(100*i/static_cast<float>(N));
 		if(progress > last)
 		{
 			last = progress;
