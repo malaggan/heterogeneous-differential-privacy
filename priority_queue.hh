@@ -14,7 +14,7 @@ template<typename T, size_t N, typename Comparator = std::greater<T>> // Compara
 class priority_queue : public base_q<T, N> {
 	Comparator comp;
 	size_t first; // Rationale: Otherwise there's a bug: size of container will never reach N (if size() < N) when newer items are pushed.
-                // solution: TODO: heap begins at some index S (1). S = 0 only if heap is full. When heap not full
+                // solution: (already done) heap begins at some index S. S = 0 only if heap is full. When heap not full
                 //                 decrement S, and put new element at arr[S]. heapify must be called to
                 //                 restore heap structure.
 public:

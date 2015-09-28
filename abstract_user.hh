@@ -27,9 +27,7 @@ public:
 		}
 	};
 
-	explicit abstract_user(user_id_t id) : id{id} {
-		assert(id < 481); // TODO: FIXME: hardcoded debug code
-	}
+	explicit abstract_user(user_id_t id) : id{id} {}
 
 	virtual void do_gossip() = 0; // TODO : remember to user "override" in subclasses. TODO convert to coroutine
 	virtual void print_view() const {}

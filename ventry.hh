@@ -7,9 +7,7 @@
 // view entry
 struct ventry_t {
 	ventry_t()                                 : id{}  , age{}    {} // FIXME: do we need a default ctor?
-	explicit ventry_t(user_id_t id, age_t age) : id{id}, age{age} {
-		assert(id < 481); // TODO: FIXME: hardcoded debug code
-	}
+	explicit ventry_t(user_id_t id, age_t age) : id{id}, age{age} {}
 	using cref = ventry_t const&;
 
 	// --- Comparison operators

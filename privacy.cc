@@ -97,8 +97,6 @@ float cached_similarity(user_id_t a, user_id_t b) {
 
 	ba::accumulator_set<float, ba::features<ba::tag::sum_kahan>> acc;
 
-	// FIXME: hidding assumption: items are stored in `sorted' set. (to guarantee retval of weights_of is aligned in both)
-	// the inner product of the two weights vectors (but only for the items in the intersection)
 	boost::range::for_each(weights_of(a, intersection),
 	                       weights_of(b, intersection),
 	                       std::bind(std::ref(acc),

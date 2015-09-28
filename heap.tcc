@@ -15,7 +15,7 @@ struct heap_index {
 	maybe<size_t> left() { // index_of_left_child_in_that_range
 		return some(first * 2 + 1)
 			.bind<>(std::function<maybe<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
-	} // TODO rename none to none, to be consistent with some
+	}
 	maybe<size_t> right() { // index_of_right_child_in_that_range
 		return (left() + 1)
 			.bind<>(std::function<maybe<size_t>(size_t)>{std::bind(&heap_index::validate, this, std::placeholders::_1)});
