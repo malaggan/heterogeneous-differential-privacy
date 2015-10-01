@@ -7,6 +7,7 @@
 #include <functional>
 int main()
 {
+	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	set_t joined_peers;
 	all_t all_peers;
 	int last = 0;
