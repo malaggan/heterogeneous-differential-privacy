@@ -2,7 +2,7 @@
 // http://www.boost.org/doc/libs/1_57_0/doc/html/boost/container/flat_map.html
 
 #include "user.hh"
-#include "range.tcc"
+#include <boost/range/counting_range.hpp>
 #include <boost/accumulators/statistics/sum_kahan.hpp>
 #include <boost/accumulators/accumulators.hpp>
 #include <cassert>
@@ -20,8 +20,8 @@ int main()
 	all_t all_peers;
 	int last = 0;
 	std::cout << "Initializing peers:";
-	auto N = 481;
-	for(auto i : range<std::vector, std::size_t>(N)) // TODO: use boost irange
+	auto N = 481u;
+	for(auto i : boost::counting_range(0u, N)) // TODO: use boost irange
 	{
 		auto peer = new user{i, joined_peers, all_peers};
 		joined_peers.insert(peer);
@@ -37,7 +37,7 @@ int main()
 
 	last = 0;
 	std::cout << "Simulating cycles:" << std::endl;
-	for(auto i : range<std::vector, std::size_t>(cycles))
+	for(auto i : boost::counting_range(0u, cycles))
 	{
 		std::for_each(std::begin(joined_peers), std::end(joined_peers), std::mem_fn(&abstract_user::do_gossip));
 		int progress = static_cast<int>(100*i/static_cast<float>(cycles));
@@ -53,7 +53,7 @@ int main()
 
 	for(auto u : joined_peers)
 	{
-	 auto a = dynamic_cast<vicinity<cyclon>*>(u);
+	 auto a = dynamic_cast<vicinity*>(u);
 	 assert(a != nullptr);
 	 acc(a->recall());
 	 // a->print_view();

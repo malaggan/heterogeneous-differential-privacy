@@ -1,11 +1,9 @@
 #pragma once
+#include "cyclon.hh"
 
-#include "abstract_user.hh"
-
-template<typename RPS>
-class vicinity : public RPS {
+class vicinity : public cyclon {
 private:
-	std::tuple<vicinity<RPS>*, view_t> send_gossip(maybe<user_id_t> = none) const;
+	std::tuple<vicinity*, view_t> send_gossip(maybe<user_id_t> = none) const;
 	void receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
 
 protected:
@@ -13,7 +11,7 @@ protected:
 
 public:
 
-	explicit vicinity(user_id_t me, set_t &already_joined, all_t &all_peers) : RPS{me, already_joined, all_peers} {}
+	explicit vicinity(user_id_t me, set_t &already_joined, all_t &all_peers) : cyclon{me, already_joined, all_peers} {}
 
 	void do_gossip() override;
 
@@ -23,7 +21,3 @@ public:
 
 	virtual ~vicinity() {}
 };
-
-// explicit instantiation declaration (to prevent automatic instantation)
-#include "cyclon.hh"
-extern template void vicinity<cyclon>::do_gossip();

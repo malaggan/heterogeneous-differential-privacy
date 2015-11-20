@@ -17,8 +17,7 @@ using std::setw;
 using std::cout;
 using std::endl;
 
-template<typename RPS>
-void vicinity<RPS>::print_view() const {
+void vicinity::print_view() const {
     copy(
 	view | ::helpers::map_ids,
 	make_function_output_iterator(
@@ -27,16 +26,10 @@ void vicinity<RPS>::print_view() const {
     cout << endl;
 }
 
-template<typename RPS>
-double vicinity<RPS>::recall() const {
+double vicinity::recall() const {
 		std::vector<item_id_t> intersection;
 		for(auto neighbor : view | ::helpers::map_ids)
-				boost::set_intersection(dataset.value()[neighbor], dataset.value()[RPS::id], std::back_inserter<>(intersection));
+				boost::set_intersection(dataset.value()[neighbor], dataset.value()[id], std::back_inserter<>(intersection));
 		std::set<item_id_t> s{std::begin(intersection), std::end(intersection)};
-		return s.size() / static_cast<double>(dataset.value()[RPS::id].size());
+		return s.size() / static_cast<double>(dataset.value()[id].size());
 }
-
-// explicit instantiation
-#include "cyclon.hh"
-template void vicinity<cyclon>::print_view() const;
-template double vicinity<cyclon>::recall() const;
