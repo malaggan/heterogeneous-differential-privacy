@@ -19,11 +19,13 @@ void vicinity::receive_gossip(
 		priority_queue<ventry, viewSize, semantic_comp<vicinity,ventry>>{view, this}
 		.push_all(cyclon::view)
 		.push_all(to_be_received.remove(id)));
+	// duplicates are removed, keeping oldest timestamp.
 
-	// TODO: FIXME: should have removed duplicates, keeping oldest timestamp.
+	print_view();
 }
 
 void vicinity::do_gossip() {
+		cyclon::do_gossip();
 	view_t to_send;
 	vicinity *target;
 	std::tie(target, to_send) = send_gossip();

@@ -35,6 +35,10 @@ using std::endl;
 using std::cend;
 using std::end;
 using std::tie;
+using std::setfill;
+using std::setw;
+using std::left;
+using std::right;
 
 cyclon::cyclon(user_id_t me, set_t &already_joined, all_t &all_peers)
 	: abstract_user{me}, view{}, all_peers{all_peers}
@@ -83,12 +87,25 @@ auto cyclon::random_neighbor() const -> user_id_t {
 }
 
 void cyclon::print_view() const {
-	copy(
-		view | ::helpers::map_ids,
-		make_function_output_iterator(
-			var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
-		);
-	cout << endl;
+	// copy(
+	//	view | ::helpers::map_ids,
+	//	make_function_output_iterator(
+	//		var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
+	//	);
+	// cout << endl;
+
+				if(this->id == 1) {
+				extern rational similarity(user_id_t a,
+																 user_id_t b);
+				extern uint32_t current_cycle;
+				cout << 'R'
+						 << setfill('0') << setw(2) << right << current_cycle;
+						for (auto neighbor : view | ::helpers::map_ids)
+								if( similarity(this->id, neighbor) > rational{0} )
+										cout << setfill(' ') << setw(4) << right << neighbor << ": "
+												 << setfill(' ') << setw(10) << left << similarity(this->id, neighbor);
+				cout << endl;
+		}
 }
 
 auto cyclon::random_replace(user_id_t id) -> user_id_t {
@@ -148,6 +165,8 @@ void cyclon::receive_gossip(
 		else
 			++a;
 	}
+
+	cyclon::print_view();
 }
 
 void cyclon::do_gossip() {

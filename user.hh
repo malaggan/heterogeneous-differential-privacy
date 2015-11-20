@@ -9,8 +9,7 @@ public:
 		{}
 
 	void do_gossip() override {
-		cyclon::do_gossip();
-		vicinity::do_gossip(); // TODO: use boost coroutines
+		vicinity::do_gossip();
 	}
 
 	virtual ~user() {}

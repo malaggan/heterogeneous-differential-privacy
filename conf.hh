@@ -12,3 +12,7 @@ using age_t             = uint_fast32_t;
 
 // --- Option
 #include "option.hh"
+
+// --- rational
+#include <boost/rational.hpp>
+using rational = boost::rational<uint64_t>;
