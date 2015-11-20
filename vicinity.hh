@@ -19,6 +19,8 @@ public:
 
 	void print_view() const override;
 
+	double recall() const;
+
 	virtual ~vicinity() {}
 };
 

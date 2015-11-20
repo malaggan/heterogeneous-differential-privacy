@@ -10,7 +10,6 @@ public:
 		{}
 
 	void do_gossip() override {
-		std::cout << '.' << std::flush;
 		cyclon::do_gossip();
 		vicinity::do_gossip(); // TODO: use boost coroutines
 	}

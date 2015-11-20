@@ -1,6 +1,8 @@
 // -*- mode : c++; -*-
 #pragma once
 
+// TODO: use boost irange
+
 #include <boost/range/algorithm_ext/iota.hpp>
 #include <vector>
 
@@ -8,6 +10,6 @@ template<template<typename...> class Container = std::vector, typename T = uint_
 auto range(std::size_t len, std::size_t initial = T{0})
 {
     Container<T> container(len);
-    boost::iota(container, initial); 
+    boost::iota(container, initial);
     return container;
 }

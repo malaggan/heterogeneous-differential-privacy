@@ -34,7 +34,7 @@ void generate_weights(user_id_t id, Distribution pc) {
 	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
 	assert(id < dataset.value().size());
 	for(item_id_t const & item : dataset.value()[id])
-		privacy_weights[id][item] = pc(rng);
+			privacy_weights[id][item] = 1; //pc(rng); XXX for debugging: no privacy groups
 }
 
 enum class privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2 };
@@ -114,7 +114,7 @@ float cached_similarity(user_id_t a, user_id_t b) {
 float similarity(user_id_t a,
                  user_id_t b) {
 	if(!dataset)
-		dataset = some(load_dataset("digg.txt"));
+		dataset = some(load_dataset("delicious.txt"));
 	assert(a < dataset.value().size());
 	assert(b < dataset.value().size());
 	return cached_similarity(a, b);
