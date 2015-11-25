@@ -2,7 +2,7 @@
 // http://www.boost.org/doc/libs/1_57_0/doc/html/boost/container/flat_map.html
 
 #include "dataset.hh"
-#include "user.hh"
+#include "abstract_user.hh"
 #include <boost/range/counting_range.hpp>
 #include <boost/accumulators/statistics/sum.hpp>
 #include <boost/accumulators/statistics/sum_kahan.hpp>
@@ -23,9 +23,10 @@ int main(int argc, char *argv[]) {
 		// the test set should not include items which no one else has; this will raise recall)
 		// similarity computation is one on the two training sets
 		// recall computation is done on test set vs (test+training)
+		// TODO: is search done also on RPS??
 
 		dataset = some(load_dataset(argv[1]));
-	set_t joined_peers;
+		user::set_t joined_peers;
 	all_t all_peers;
 	int last = 0;
 	std::cout << "Initializing peers:";
@@ -69,7 +70,7 @@ int main(int argc, char *argv[]) {
 			// }
 			// std::cout << "average recall = " << ba::sum_kahan(acc) / joined_peers.size() << std::endl;
 
-		boost::for_each(joined_peers, std::mem_fn(&abstract_user::do_gossip));
+		boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));
 		// int progress = static_cast<int>(100*i/static_cast<float>(cycles));
 		// if(progress > last)
 		// {
@@ -82,10 +83,8 @@ int main(int argc, char *argv[]) {
 	ba::accumulator_set<rational, ba::features<ba::tag::sum>> acc;
 	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc2;
 
-	for(auto u : joined_peers)
+	for(auto a : joined_peers)
 	{
-	 auto a = dynamic_cast<vicinity*>(u);
-	 assert(a != nullptr);
 	 auto recall = a->recall();
 	 std::cout << "recall("<<(a->id)<<") = " << boost::rational_cast<float>(recall) << std::endl ;
 	 acc(recall);

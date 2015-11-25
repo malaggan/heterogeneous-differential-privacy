@@ -1,10 +1,10 @@
 // Implementing: Voulgaris, S., & Van Steen, M. (2005). Epidemic-style management of semantic overlays for content-based searching. In Euro-Par 2005 Parallel Processing (pp. 1143-1152). Springer Berlin Heidelberg. (DOI: 10.1007/11549468_125)
-#include "vicinity.hh"
+#include "abstract_user.hh"
 #include "privacy.hh" // TODO: a better name is "similarity"
 #include "priority_queue.hh"
 
 #define UNUSED(x)
-void vicinity::receive_gossip(
+void user::vicinity_receive_gossip(
 	view_t to_be_received,
 	view_t UNUSED(was_sent)) {
 #undef UNUSED
@@ -15,45 +15,44 @@ void vicinity::receive_gossip(
 	// 6. Discard entries pointing at me and entries already contained in my view (discarded automatically by `set').
 
 	// keep only top `viewSize' (in terms of similarity to *this).
-	view.clear_and_assign(
-		priority_queue<ventry, viewSize, semantic_comp<vicinity,ventry>>{view, this}
-		.push_all(cyclon::view)
+	vicinity_view.clear_and_assign(
+		priority_queue<ventry, viewSize, semantic_comp<user,ventry>>{vicinity_view, this}
+		.push_all(cyclon_view)
 		.push_all(to_be_received.remove(id)));
 	// duplicates are removed, keeping oldest timestamp.
 
-	print_view();
+	vicinity_print_view();
 }
 
-void vicinity::do_gossip() {
-		cyclon::do_gossip();
+void user::vicinity_do_gossip() {
+		cyclon_do_gossip();
 	view_t to_send;
-	vicinity *target;
-	std::tie(target, to_send) = send_gossip();
+	user *target;
+	std::tie(target, to_send) = vicinity_send_gossip();
 
 	view_t to_receive;
-	std::tie(std::ignore, to_receive) = target->send_gossip(some(id));
+	std::tie(std::ignore, to_receive) = target->vicinity_send_gossip(some(id));
 
-	receive_gossip(to_receive, to_send);
-	target->receive_gossip(to_send, to_receive);
+	vicinity_receive_gossip(to_receive, to_send);
+	target->vicinity_receive_gossip(to_send, to_receive);
 }
 
-auto vicinity::send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<vicinity*, view_t> {
+auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<user*, view_t> {
 	// send to peer with oldest time stamp
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer
 	//   from the VICINITY view and the CYCLON view
 
 	return std::make_tuple(
-		dynamic_cast<vicinity*>(
 			all_peers[
 				dest_opt
 				.value_or(
-					view.get_oldest_peer()
+					vicinity_view.get_oldest_peer()
 					.self_or(
-						cyclon::view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
-					.value()->id)]),
+						cyclon_view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
+					.value()->id)],
 		view_t{}
 		.clear_and_assign(
-			priority_queue<ventry, viewSize/2, semantic_comp<vicinity,ventry>>{view, this}
-			.push_all(cyclon::view)));
+			priority_queue<ventry, viewSize/2, semantic_comp<user,ventry>>{vicinity_view, this}
+			.push_all(cyclon_view)));
 }

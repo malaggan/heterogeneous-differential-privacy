@@ -1,4 +1,4 @@
-#include "vicinity.hh"
+#include "abstract_user.hh"
 #include "dataset.hh"
 
 #include <boost/range/algorithm/set_algorithm.hpp>
@@ -22,9 +22,9 @@ using std::left;
 using std::right;
 
 
-void vicinity::print_view() const {
+void user::vicinity_print_view() const {
   //   copy(
-	// view | ::helpers::map_ids,
+	// vicinity_view | ::helpers::map_ids,
 	// make_function_output_iterator(
 	//     var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 	// );
@@ -38,7 +38,7 @@ void vicinity::print_view() const {
 						 << setfill('0') << setw(2) << right << current_cycle << ' '
 						 << setfill(' ') << setw(8) << left << recall();
 				cout << '(';
-				for (auto neighbor : view | ::helpers::map_ids)
+				for (auto neighbor : vicinity_view | ::helpers::map_ids)
 						if( similarity(this->id, neighbor) > rational{0} )
 								cout << setfill(' ') << setw(4) << right << neighbor << ": "
 										 << setfill(' ') << setw(10) << left << similarity(this->id, neighbor);
@@ -47,9 +47,9 @@ void vicinity::print_view() const {
 		}
 }
 
-rational vicinity::recall() const {
+rational user::recall() const {
 		std::vector<item_id_t> intersection;
-		for(auto neighbor : view | ::helpers::map_ids)
+		for(auto neighbor : vicinity_view | ::helpers::map_ids)
 				boost::set_intersection(dataset.value()[neighbor], dataset.value()[id], std::back_inserter<>(intersection));
 		std::set<item_id_t> s{std::begin(intersection), std::end(intersection)};
 		return rational{s.size()} / rational{dataset.value()[id].size()};
