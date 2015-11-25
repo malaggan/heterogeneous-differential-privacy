@@ -123,8 +123,7 @@ rational cached_similarity(user_id_t a, user_id_t b) {
 
 rational similarity(user_id_t a,
                  user_id_t b) {
-	if(!dataset)
-		dataset = some(load_dataset("delicious.txt"));
+		assert(dataset);
 	assert(a < dataset.value().size());
 	assert(b < dataset.value().size());
 	return cached_similarity(a, b);

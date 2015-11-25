@@ -1,6 +1,7 @@
 // https://github.com/faithandbrave/Shand/blob/master/shand/static_map.hpp
 // http://www.boost.org/doc/libs/1_57_0/doc/html/boost/container/flat_map.html
 
+#include "dataset.hh"
 #include "user.hh"
 #include <boost/range/counting_range.hpp>
 #include <boost/accumulators/statistics/sum.hpp>
@@ -15,9 +16,15 @@
 
 namespace ba = boost::accumulators;
 uint32_t current_cycle = 0;
-int main()
-{
-	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
+int main(int argc, char *argv[]) {
+		assert(argc == 2);
+		// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
+    // for each user: has a test set and a training set
+		// the test set should not include items which no one else has; this will raise recall)
+		// similarity computation is one on the two training sets
+		// recall computation is done on test set vs (test+training)
+
+		dataset = some(load_dataset(argv[1]));
 	set_t joined_peers;
 	all_t all_peers;
 	int last = 0;
