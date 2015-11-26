@@ -64,9 +64,11 @@ cached_similarity(user_id_t other) {
 	if(this->id > other)
 		return all_peers[other]->cached_similarity(this->id);
 
-	// TODO uncomment this. it was only commented for sanity check.
-	// if(similarities.count(id))
-	//	return similarities[id];
+	if(similarities.count(other))
+		return similarities[other];
+
+	if(items.size() == 0 || all_peers[other]->items.size() == 0)
+		return similarities[other] = 0; // TODO discard users with empty profile from the very beginning
 
 	std::vector<item_id_t> intersection;
 	boost::set_intersection(items, all_peers[other]->items, std::back_inserter<>(intersection));
@@ -82,14 +84,10 @@ cached_similarity(user_id_t other) {
 	// divide squared inner product by size1 * size2 to get cosine similarity
 	rational inner_prod{ba::sum(acc)};
 	inner_prod *= inner_prod;
-	rational denominator{items.size() * all_peers[other]->items.size()};
-	if(similarities.count(other)) // sanity check
-		assert(	similarities[other] == inner_prod / denominator);
 
-	similarities[other] = inner_prod / denominator;
 	//std::cout << "squared cossim "
 	//					<< std::setfill('0') << std::setw(3) << a << "-"
 	//					<< std::setfill('0') << std::setw(3) << b << " = "
 	//					<< similarities[id] << std::endl;
-	return similarities[other];
+	return similarities[other] = inner_prod / rational{items.size() * all_peers[other]->items.size()};
 }
