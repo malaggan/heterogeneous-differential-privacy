@@ -26,7 +26,8 @@ public:
 	all_t																		 &all_peers;
 	view_t																	 vicinity_view;
 	std::set<item_id_t>											 items; // has to be sorted to enable set_intersection algorithms
-	std::unordered_map<item_id_t,rational>   privacy_weights; // user's privacy preference of all items XXX currently working on this: moving global privacy.cc stuff
+	std::set<item_id_t>											 training_items, test_items;
+	std::unordered_map<item_id_t,rational>   privacy_weights; // user's privacy preference of all training items
 	std::unordered_map<user_id_t,rational>   similarities; // only contains key < this->id.
 public:
 	struct hash   { constexpr std::size_t operator()(user const *u) const { return u->id; }};

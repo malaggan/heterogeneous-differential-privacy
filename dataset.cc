@@ -21,6 +21,9 @@ size_t dataset_get_num_users(std::string path)
 	return user_count;
 }
 
+// keep track of which items are used by at most one user, so they are never used in the test set
+std::unordered_set<item_id_t> used_more_than_once;
+
 void load_dataset(std::string path, all_t & all_peers)
 {
 	using namespace std;
@@ -33,8 +36,14 @@ void load_dataset(std::string path, all_t & all_peers)
 	uint_fast32_t user_count, item_count;
 	f >> user_count >> item_count;
 
+	std::unordered_set<item_id_t> seen;
 	for_each(boost::istream_range<item>(f),
-	         [&all_peers](item const& item) {
+	         [&all_peers, &seen]
+	         (item const& item) {
+		         if(seen.count(item.second))
+			         used_more_than_once.insert(item.second);
+		         else
+			         seen.insert(item.second);
 		         assert(item.first <= all_peers.size());
 		         all_peers[item.first - 1]->add_item(item.second);
 	         });

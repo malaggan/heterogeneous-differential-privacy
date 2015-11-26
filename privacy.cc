@@ -2,7 +2,15 @@
 
 void user::
 add_item(item_id_t i) {
+	extern std::unordered_set<item_id_t> used_more_than_once;
+
 	items.insert(i);
+
+	if(used_more_than_once.count(i) and std::bernoulli_distribution{0.1}(rng))
+		test_items.insert(i);
+	else
+		training_items.insert(i);
+
 }
 
 void user::
@@ -67,11 +75,11 @@ cached_similarity(user_id_t other) {
 	if(similarities.count(other))
 		return similarities[other];
 
-	if(items.size() == 0 || all_peers[other]->items.size() == 0)
+	if(training_items.size() == 0 || all_peers[other]->training_items.size() == 0)
 		return similarities[other] = 0; // TODO discard users with empty profile from the very beginning
 
 	std::vector<item_id_t> intersection;
-	boost::set_intersection(items, all_peers[other]->items, std::back_inserter<>(intersection));
+	boost::set_intersection(training_items, all_peers[other]->training_items, std::back_inserter<>(intersection));
 
 	ba::accumulator_set<rational, ba::features<ba::tag::sum>> acc;
 
@@ -89,5 +97,5 @@ cached_similarity(user_id_t other) {
 	//					<< std::setfill('0') << std::setw(3) << a << "-"
 	//					<< std::setfill('0') << std::setw(3) << b << " = "
 	//					<< similarities[id] << std::endl;
-	return similarities[other] = inner_prod / rational{items.size() * all_peers[other]->items.size()};
+	return similarities[other] = inner_prod / rational{training_items.size() * all_peers[other]->training_items.size()};
 }
