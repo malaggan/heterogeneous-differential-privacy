@@ -13,16 +13,18 @@
 #include <iostream>
 #include <algorithm>
 #include <functional>
-#include <boost/program_options/option.hpp>
+
 
 all_t all_peers;
 
 namespace ba = boost::accumulators;
-namespace po = boost::program_options;
+
+extern void parse_args(int argc, char *argv[]);
 
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	// cmdline args: dataset, random seed (fixed or asked for new randomness), epsilon, groups-or-slices, if slices ( num slices, min epsilon ), if groups ( naive-or-standard, percentages of the groups )
+	parse_args(argc, argv);
 
 
 	assert(argc == 2);
