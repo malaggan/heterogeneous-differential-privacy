@@ -1,6 +1,6 @@
 // https://github.com/faithandbrave/Shand/blob/master/shand/static_map.hpp
 // http://www.boost.org/doc/libs/1_57_0/doc/html/boost/container/flat_map.html
-
+#include "args.hh"
 #include "dataset.hh"
 #include "abstract_user.hh"
 #include <boost/range/counting_range.hpp>
@@ -19,11 +19,14 @@ all_t all_peers;
 
 namespace ba = boost::accumulators;
 
-extern void parse_args(int argc, char *argv[]);
-
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
+
+	// for reproducibility
+	if(vm.count("random-seed"))
+		rng = std::default_random_engine{vm["random-seed"].as<uint32_t>()};
+
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
 	// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)

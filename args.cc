@@ -14,7 +14,7 @@ void parse_args(int ac, char *av[]) {
 	po::options_description general("General options");
 	general.add_options()
 		("dataset,f", po::value<std::string>()->default_value("delicious.txt"), "dataset to use (can also be given directly)")
-    ("random-seed,r", po::value<int>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
+    ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
 		("epsilon,e", po::value<float>()->default_value(3.0f), "the differential privacy parameter")
 		;
 	po::options_description output("Output options");
