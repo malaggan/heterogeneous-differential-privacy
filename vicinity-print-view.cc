@@ -23,32 +23,32 @@ using std::right;
 
 
 void user::vicinity_print_view() {
-  //   copy(
+	//   copy(
 	// vicinity_view | ::helpers::map_ids,
 	// make_function_output_iterator(
 	//     var(cout) << setw(3) << _1 << ",") // another sol here: http://mariusbancila.ro/blog/2008/04/10/output-formatting-with-stdcopy/
 	// );
-  //   cout << endl;
+	//   cout << endl;
 
-		if(this->id == 1) {
-				extern uint32_t current_cycle;
-				cout << 'V'
-						 << setfill('0') << setw(2) << right << current_cycle << ' '
-						 << setfill(' ') << setw(8) << left << recall();
-				cout << '(';
-				for (auto neighbor : vicinity_view | ::helpers::map_ids)
-						if( cached_similarity(neighbor) > rational{0} )
-								cout << setfill(' ') << setw(4) << right << neighbor << ": "
-										 << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
-				cout << ')';
-				cout << endl;
-		}
+	if(this->id == 1) {
+		extern uint32_t current_cycle;
+		cout << 'V'
+		     << setfill('0') << setw(2) << right << current_cycle << ' '
+		     << setfill(' ') << setw(8) << left << recall();
+		cout << '(';
+		for (auto neighbor : vicinity_view | ::helpers::map_ids)
+			if( cached_similarity(neighbor) > rational{0} )
+				cout << setfill(' ') << setw(4) << right << neighbor << ": "
+				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
+		cout << ')';
+		cout << endl;
+	}
 }
 
 rational user::recall() const {
-		std::vector<item_id_t> intersection;
-		for(auto neighbor : vicinity_view | ::helpers::map_ids)
-				boost::set_intersection(all_peers[neighbor]->items, all_peers[id]->items, std::back_inserter<>(intersection));
-		std::set<item_id_t> s{std::begin(intersection), std::end(intersection)};
-		return rational{s.size()} / rational{all_peers[id]->items.size()};
+	std::vector<item_id_t> intersection;
+	for(auto neighbor : vicinity_view | ::helpers::map_ids)
+		boost::set_intersection(all_peers[neighbor]->items, all_peers[id]->items, std::back_inserter<>(intersection));
+	std::set<item_id_t> s{std::begin(intersection), std::end(intersection)};
+	return rational{s.size()} / rational{all_peers[id]->items.size()};
 }

@@ -41,7 +41,7 @@ using std::left;
 using std::right;
 
 user::user(user_id_t me, set_t &already_joined, all_t &all_peers)
-		: id{me}, cyclon_view{}, all_peers{all_peers}, vicinity_view{}, items{}, privacy_weights{}, similarities{}
+	: id{me}, cyclon_view{}, all_peers{all_peers}, vicinity_view{}, items{}, privacy_weights{}, similarities{}
 {
 	auto bootstrapPeers = already_joined.random_subset(viewSize);
 	for(auto rps_other : bootstrapPeers)
@@ -92,16 +92,16 @@ void user::cyclon_print_view() {
 	//	);
 	// cout << endl;
 
-				if(this->id == 1) {
-				extern uint32_t current_cycle;
-				cout << 'R'
-						 << setfill('0') << setw(2) << right << current_cycle;
-						for (auto neighbor : cyclon_view | ::helpers::map_ids)
-								if( cached_similarity(neighbor) > rational{0} )
-										cout << setfill(' ') << setw(4) << right << neighbor << ": "
-												 << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
-				cout << endl;
-		}
+	if(this->id == 1) {
+		extern uint32_t current_cycle;
+		cout << 'R'
+		     << setfill('0') << setw(2) << right << current_cycle;
+		for (auto neighbor : cyclon_view | ::helpers::map_ids)
+			if( cached_similarity(neighbor) > rational{0} )
+				cout << setfill(' ') << setw(4) << right << neighbor << ": "
+				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
+		cout << endl;
+	}
 }
 
 auto user::random_replace(user_id_t id) -> user_id_t {

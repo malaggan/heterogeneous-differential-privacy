@@ -8,7 +8,7 @@ view_t& view_t::add(user_id_t u) {
 	if(!contains(u)) {
 		view_base::emplace(u, 0);
 		assert(size() == s + 1);
-	}else{
+	} else {
 		auto p = get_by_id(u);
 		assert(p);
 		auto it = p.value();

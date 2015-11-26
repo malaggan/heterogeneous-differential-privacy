@@ -30,8 +30,8 @@ template <typename T> using fn = std::function<T>;
 template<typename RandomAccessRange, typename Comparator>
 void sift_down(RandomAccessRange range, Comparator comp, heap_index root) {
 	using f1 = fn<fn<maybe<size_t>(size_t)>(maybe<size_t>)>;
-  using f2 = fn<maybe<size_t>(size_t)>;
-  f1 if_greater =
+	using f2 = fn<maybe<size_t>(size_t)>;
+	f1 if_greater =
 		[&](maybe<size_t> other) {
 		return f2{
 			[&comp,&range,other/*the bug: was capturing other by ref on expired stack frame...*/](size_t idx) -> maybe<size_t> {

@@ -19,16 +19,16 @@ all_t all_peers;
 namespace ba = boost::accumulators;
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
-		assert(argc == 2);
-		// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
-    // for each user: has a test set and a training set
-		// the test set should not include items which no one else has; this will raise recall)
-		// similarity computation is one on the two training sets
-		// recall computation is done on test set vs (test+training)
-		// TODO: is search (recall) done also on RPS view??
-		// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
+	assert(argc == 2);
+	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
+	// for each user: has a test set and a training set
+	// the test set should not include items which no one else has; this will raise recall)
+	// similarity computation is one on the two training sets
+	// recall computation is done on test set vs (test+training)
+	// TODO: is search (recall) done also on RPS view??
+	// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
 
-		user::set_t joined_peers;
+	user::set_t joined_peers;
 
 	int last = 0;
 	std::cout << "Initializing peers:";
@@ -52,16 +52,16 @@ int main(int argc, char *argv[]) {
 	std::cout << "Simulating cycles:" << std::endl;
 	for(auto i : boost::counting_range(0u, cycles))
 	{
-			current_cycle++;
-			// ba::accumulator_set<float, ba::features<ba::tag::sum_kahan>> acc;
-			// for(auto u : joined_peers)
-			// {
-			//		auto a = dynamic_cast<vicinity*>(u);
-			//		assert(a != nullptr);
-			//		acc(a->recall());
-			//		//a->print_view();
-			// }
-			// std::cout << "average recall = " << ba::sum_kahan(acc) / joined_peers.size() << std::endl;
+		current_cycle++;
+		// ba::accumulator_set<float, ba::features<ba::tag::sum_kahan>> acc;
+		// for(auto u : joined_peers)
+		// {
+		//		auto a = dynamic_cast<vicinity*>(u);
+		//		assert(a != nullptr);
+		//		acc(a->recall());
+		//		//a->print_view();
+		// }
+		// std::cout << "average recall = " << ba::sum_kahan(acc) / joined_peers.size() << std::endl;
 
 		boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));
 		// int progress = static_cast<int>(100*i/static_cast<float>(cycles));
@@ -78,11 +78,11 @@ int main(int argc, char *argv[]) {
 
 	for(auto a : joined_peers)
 	{
-	 auto recall = a->recall();
-	 std::cout << "recall("<<(a->id)<<") = " << boost::rational_cast<float>(recall) << std::endl ;
-	 acc(recall);
-	 acc2(boost::rational_cast<double>(recall));
-	 //a->print_view();
+		auto recall = a->recall();
+		std::cout << "recall("<<(a->id)<<") = " << boost::rational_cast<float>(recall) << std::endl ;
+		acc(recall);
+		acc2(boost::rational_cast<double>(recall));
+		//a->print_view();
 	}
 	std::cout << "average recall (rational) = " << boost::rational_cast<float>( ba::sum(acc) / rational{joined_peers.size()}) << std::endl ;
 	std::cout << "average recall = " << (ba::sum_kahan(acc2) / joined_peers.size()) << std::endl ;

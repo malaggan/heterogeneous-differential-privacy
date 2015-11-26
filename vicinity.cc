@@ -25,7 +25,7 @@ void user::vicinity_receive_gossip (
 }
 
 void user::vicinity_do_gossip() {
-		cyclon_do_gossip();
+	cyclon_do_gossip();
 	view_t to_send;
 	user *target;
 	std::tie(target, to_send) = vicinity_send_gossip();
@@ -44,13 +44,13 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, 
 	//   from the VICINITY view and the CYCLON view
 
 	return std::make_tuple(
-			all_peers[
-				dest_opt
-				.value_or(
-					vicinity_view.get_oldest_peer()
-					.self_or(
-						cyclon_view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
-					.value()->id)],
+		all_peers[
+			dest_opt
+			.value_or(
+				vicinity_view.get_oldest_peer()
+				.self_or(
+					cyclon_view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
+				.value()->id)],
 		view_t{}
 		.clear_and_assign(
 			priority_queue<ventry, viewSize/2, semantic_comp>{vicinity_view,  this}

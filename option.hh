@@ -16,7 +16,7 @@ public:
 	constexpr explicit maybe( const T& value ) : base_maybe<T>{value} {}
 	constexpr explicit maybe( T&& value ) : base_maybe<T>{std::move(value)} {}
 
-  // bind = fmap + join. This is the join: maybe<maybe<B>> -> maybe<B>.
+	// bind = fmap + join. This is the join: maybe<maybe<B>> -> maybe<B>.
 	// TODO: test for maybe<maybe<maybe<T>>>
 	constexpr maybe( maybe<maybe<T>> const& o ) : base_maybe<T>{none} {
 		if(o)
@@ -82,35 +82,35 @@ namespace gossple {
 
 // SFINAE to enable only on arithmetic types (or perhaps on any type with operator+ ?)
 #include <experimental/type_traits>
-#define maybe_lift_arith(op) template <typename T1, typename T2>                                   \
-std::enable_if_t<                                                                                   \
-     std::experimental::is_arithmetic_v<T1> and                                                     \
-	   std::experimental::is_arithmetic_v<T2>,                                                        \
-maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1> a, maybe<T2> b) \
-{                                                                                                   \
-	if(a && b)                                                                                        \
-		return some(a.value() op b.value());                                                            \
-	return none;                                                                                   \
-}                                                                                                   \
-template <typename T1, typename T2>                                                                 \
-std::enable_if_t<                                                                                   \
-     std::experimental::is_arithmetic_v<T1> and                                                     \
-	   std::experimental::is_arithmetic_v<T2>,                                                        \
+#define maybe_lift_arith(op) template <typename T1, typename T2>                                  \
+std::enable_if_t<                                                                                 \
+     std::experimental::is_arithmetic_v<T1> and                                                   \
+	   std::experimental::is_arithmetic_v<T2>,                                                      \
+maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1> a, maybe<T2> b)	\
+{                                                                                                 \
+	if(a && b)                                                                                      \
+		return some(a.value() op b.value());                                                          \
+	return none;																																										\
+}                                                                                                 \
+template <typename T1, typename T2>                                                               \
+std::enable_if_t<                                                                                 \
+     std::experimental::is_arithmetic_v<T1> and                                                   \
+	   std::experimental::is_arithmetic_v<T2>,                                                      \
 maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1> a, T2 b)         \
-{                                                                                                   \
-	if(a)                                                                                             \
-		return some(a.value() op b);                                                                    \
-	return none;                                                                                   \
-}                                                                                                   \
-template <typename T1, typename T2>                                                                 \
-std::enable_if_t<                                                                                   \
-     std::experimental::is_arithmetic_v<T1> and                                                     \
-	   std::experimental::is_arithmetic_v<T2>,                                                        \
+{                                                                                                 \
+	if(a)                                                                                           \
+		return some(a.value() op b);                                                                  \
+	return none;																																										\
+}                                                                                                 \
+template <typename T1, typename T2>                                                               \
+std::enable_if_t<                                                                                 \
+     std::experimental::is_arithmetic_v<T1> and                                                   \
+	   std::experimental::is_arithmetic_v<T2>,                                                      \
 maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(T1 a, maybe<T2> b)         \
-{                                                                                                   \
-	if(b)                                                                                             \
-		return some(a op b.value());                                                                    \
-	return none;                                                                                   \
+{                                                                                                 \
+	if(b)                                                                                           \
+		return some(a op b.value());                                                                  \
+	return none;																																										\
 }
 // XXX: Is "a && b" this the correct behaviour? What if the semantics
 // would be: if(!a) return b;, as in "a || b"?
