@@ -4,7 +4,7 @@
 #include "priority_queue.hh"
 
 #define UNUSED(x)
-void user::vicinity_receive_gossip(
+void user::vicinity_receive_gossip (
 	view_t to_be_received,
 	view_t UNUSED(was_sent)) {
 #undef UNUSED
@@ -16,7 +16,7 @@ void user::vicinity_receive_gossip(
 
 	// keep only top `viewSize' (in terms of similarity to *this).
 	vicinity_view.clear_and_assign(
-		priority_queue<ventry, viewSize, semantic_comp<user,ventry>>{vicinity_view, this}
+		priority_queue<ventry, viewSize, semantic_comp>{vicinity_view, this}
 		.push_all(cyclon_view)
 		.push_all(to_be_received.remove(id)));
 	// duplicates are removed, keeping oldest timestamp.
@@ -37,7 +37,7 @@ void user::vicinity_do_gossip() {
 	target->vicinity_receive_gossip(to_send, to_receive);
 }
 
-auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<user*, view_t> {
+auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, view_t> {
 	// send to peer with oldest time stamp
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer
@@ -53,6 +53,6 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) const -> std::tuple<u
 					.value()->id)],
 		view_t{}
 		.clear_and_assign(
-			priority_queue<ventry, viewSize/2, semantic_comp<user,ventry>>{vicinity_view, this}
+			priority_queue<ventry, viewSize/2, semantic_comp>{vicinity_view,  this}
 			.push_all(cyclon_view)));
 }

@@ -1,17 +1,27 @@
 #include "dataset.hh"
-
+#include "abstract_user.hh"
+#include <boost/range/istream_range.hpp>
 #include <fstream>
 #include <iostream>
 #include <cassert>
 #include <functional>
-
-maybe<dataset_t> dataset{none};
-
 // http://stackoverflow.com/a/16546151/397405
-struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };
+
 std::istream& operator>>(std::istream& in, item& p) { in >> p.first; in >> p.second; return in; }
 
-dataset_t load_dataset(std::string path)
+size_t dataset_get_num_users(std::string path)
+{
+		auto f = std::ifstream{ path };
+		assert(f);
+		std::string signature;
+		f >> signature;
+		assert(signature == "dims");
+		size_t user_count;
+		f >> user_count;
+		return user_count;
+}
+
+void load_dataset(std::string path, all_t & all_peers)
 {
 	using namespace std;
 	using namespace std::placeholders;
@@ -23,18 +33,9 @@ dataset_t load_dataset(std::string path)
 	uint_fast32_t user_count, item_count;
 	f >> user_count >> item_count;
 
-	using entry_t = vector<uint_fast32_t>;
-	using list_t = vector<entry_t>;
-	list_t data(user_count);
-
-	for_each(istream_iterator<item>(f), istream_iterator<item>(), // TODO: use boost istream_range
-	         // bind(
-	         //    static_cast<pair<entry_t::iterator,bool> (entry_t::*) (const entry_t::value_type& )>(&entry_t::insert),
-	         //    bind(static_cast<list_t::reference (list_t::*)(list_t::size_type)>(&list_t::at), ref(data), bind(minus<void>(),bind(&item::first,_1),1)),
-	         //    bind(&item::second,_1)));
-	         [&data](item const& item) {
-		         data[item.first - 1].push_back(item.second);
+	for_each(boost::istream_range<item>(f),
+	         [&all_peers](item const& item) {
+							 assert(item.first <= all_peers.size());
+							 all_peers[item.first - 1]->add_item(item.second);
 	         });
-
-	return data;
 }

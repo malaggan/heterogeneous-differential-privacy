@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <functional>
 
+all_t all_peers;
+
 namespace ba = boost::accumulators;
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
@@ -23,15 +25,15 @@ int main(int argc, char *argv[]) {
 		// the test set should not include items which no one else has; this will raise recall)
 		// similarity computation is one on the two training sets
 		// recall computation is done on test set vs (test+training)
-		// TODO: is search done also on RPS??
+		// TODO: is search (recall) done also on RPS view??
+		// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
 
-		dataset = some(load_dataset(argv[1]));
 		user::set_t joined_peers;
-	all_t all_peers;
+
 	int last = 0;
 	std::cout << "Initializing peers:";
-	auto N = 481u;
-	for(auto i : boost::counting_range(0u, N))
+	auto N = dataset_get_num_users(argv[1]);
+	for(auto i : boost::counting_range(0ul, N))
 	{
 		auto peer = new user{i, joined_peers, all_peers};
 		joined_peers.insert(peer);
@@ -44,16 +46,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	std::cout << "100%" << std::endl;
-
-	std::cout << "caching similarity.." << std::flush;
-	rational similarity(user_id_t a,
-										user_id_t b);
-	for(auto i : boost::counting_range(0u, N)) {
-			std::cout << (i+1) << "/" << N << ".." << std::flush;
-			for(auto j : boost::counting_range(0u, i))
-					similarity(i,j);
-	}
-	std::cout << "done." << std::endl;
+	load_dataset(argv[1], all_peers);
 
 	last = 0;
 	std::cout << "Simulating cycles:" << std::endl;
@@ -91,7 +84,7 @@ int main(int argc, char *argv[]) {
 	 acc2(boost::rational_cast<double>(recall));
 	 //a->print_view();
 	}
-	std::cout << "average recall = " << boost::rational_cast<float>( ba::sum(acc) / rational{joined_peers.size()}) << std::endl ;
+	std::cout << "average recall (rational) = " << boost::rational_cast<float>( ba::sum(acc) / rational{joined_peers.size()}) << std::endl ;
 	std::cout << "average recall = " << (ba::sum_kahan(acc2) / joined_peers.size()) << std::endl ;
 	return 0;
 }

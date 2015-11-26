@@ -6,8 +6,14 @@
 #include <vector>
 #include <string>
 
-using dataset_t = std::vector<std::vector<item_id_t>>;
+//using dataset_t = std::vector<std::vector<item_id_t>>;
 
-extern maybe<dataset_t> dataset; // TODO: avoid global state
+//extern maybe<dataset_t> dataset; // TODO: avoid global state
 
-dataset_t load_dataset(std::string path); // TODO: use c++17 file system path
+#include <unordered_map>
+class user;
+using all_t     = std::unordered_map<user_id_t, user*>; // change here must refelct in abstract_user.hh
+size_t dataset_get_num_users(std::string path);
+void load_dataset(std::string path, all_t & all_peers); // TODO: use c++17 file system path
+
+struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };

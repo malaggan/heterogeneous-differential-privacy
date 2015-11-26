@@ -22,17 +22,18 @@ public:
 	// comparing to is not a compile-time value, and thus cannot be
 	// encoded in the type alone. A run-time instance had to be passed.
 	template<typename Range>
-	priority_queue(Range const& range, Comparator comp) : base_q<T, N>{}, comp{comp}, last{0} {
+	priority_queue(Range &range, Comparator comp) : base_q<T, N>{}, comp{comp}, last{0} {
 		push_all(range);
 	}
 
 	auto range()       { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
-	auto range() const { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
+		//auto range() const { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
 
   size_t size() const { return last; }
 
   // insert an element and sift it down
-	priority_queue<T, N, Comparator> & push(typename base_q<T, N>::const_reference value) {
+	priority_queue<T, N, Comparator> & push(typename base_q<T, N>::const_reference value_c) {
+			typename base_q<T, N>::reference value = const_cast<typename base_q<T, N>::reference>(value_c);
 			// ignore repeated users
 			for(auto & i : *this)
 					if(value.id == i.id) {
@@ -82,7 +83,7 @@ public:
 	}
 
 	template<typename Range>
-	priority_queue<T, N, Comparator> & push_all(Range const& range) {
+	priority_queue<T, N, Comparator> & push_all(Range &range) {
 		boost::for_each(range, std::bind(&priority_queue<T, N, Comparator>::push, this, std::placeholders::_1));
 		return *this; // allow chaining
 	}

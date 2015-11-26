@@ -1,28 +1,34 @@
 #include "conf.hh"
+#include "ventry.hh"
+#include "abstract_user.hh"
 #include <iostream>
 #include <iomanip>
-rational similarity(user_id_t a,
-										user_id_t b);
 
-template <typename T1, typename T2>
-rational similarity(T1 const &a, T2 const& b) {
-	return similarity(a.id, b.id);
+rational similarity(ventry &a, ventry &b) {
+		extern all_t all_peers;
+	return all_peers[a.id]->cached_similarity(b.id);
+}
+
+rational similarity(user &a, user &b) {
+	return a.cached_similarity(b.id);
+}
+
+rational similarity(user &a, ventry &b) {
+	return a.cached_similarity(b.id);
 }
 
 // more_similar_to(this_guy, a, b)
 // returns true if a is more similar to reference than b
-template <typename T1, typename T2>
-bool more_similar(T1 const &reference, T2 const& a, T2 const& b) {
+bool more_similar(user &reference, ventry &a, ventry &b) {
 	return similarity(reference, a) > similarity(reference, b);
 }
 
-template <typename T1, typename T2>
-bool less_similar(T1 const &reference, T2 const& a, T2 const& b, bool log) {
+bool less_similar(user &reference, ventry &a, ventry &b, bool log) {
 		if(log && reference.id == 1) {
 				using namespace std;
 
 				cout << "similarity(1, a["<<a.id<<"]) "<<similarity(reference, a)<<" < " << similarity(reference, b) << " similarity(1, b["<<b.id<<"]) //"
-						 << similarity(reference.id, b.id) << " "
+						 << similarity(reference, b) << " "
 						 << boolalpha << (similarity(reference, a) < similarity(reference, b))
 						 << endl;
 		}
@@ -30,13 +36,12 @@ bool less_similar(T1 const &reference, T2 const& a, T2 const& b, bool log) {
 }
 
 #include <functional>
-template<typename C, typename T>
-struct semantic_comp : public std::binary_function<T const&, T const&, bool>{
-	C const *ref;
+struct semantic_comp : public std::binary_function<user&, ventry&, bool>{
+		user *ref;
 		bool log;
-		/*explicit*/ semantic_comp(C const *ref) : ref{ref}, log{false} {}
-	constexpr bool operator()(T const& a, T const& b) const {
-			return less_similar<C, T>(*ref, a, b, log);
+		/*explicit*/ semantic_comp(user *ref) : ref{ref}, log{false} {}
+  bool operator()(ventry &a, ventry &b) {
+			return less_similar(*ref, a, b, log);
 	}
 		auto id() { return ref -> id; }
 };
