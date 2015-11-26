@@ -4,16 +4,16 @@
 #include <iostream>
 #include <iomanip>
 
-rational similarity(ventry &a, ventry &b) {
+auto similarity(ventry &a, ventry &b) {
 	extern all_t all_peers;
 	return all_peers[a.id]->cached_similarity(b.id);
 }
 
-rational similarity(user &a, user &b) {
+auto similarity(user &a, user &b) {
 	return a.cached_similarity(b.id);
 }
 
-rational similarity(user &a, ventry &b) {
+auto similarity(user &a, ventry &b) {
 	return a.cached_similarity(b.id);
 }
 

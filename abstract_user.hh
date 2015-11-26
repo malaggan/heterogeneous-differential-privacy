@@ -27,8 +27,8 @@ public:
 	view_t																	 vicinity_view;
 	std::set<item_id_t>											 items; // has to be sorted to enable set_intersection algorithms
 	std::set<item_id_t>											 training_items, test_items;
-	std::unordered_map<item_id_t,rational>   privacy_weights; // user's privacy preference of all training items
-	std::unordered_map<user_id_t,rational>   similarities; // only contains key < this->id.
+	std::unordered_map<item_id_t,double>     privacy_weights; // user's privacy preference of all training items
+	std::unordered_map<user_id_t,double>     similarities; // only contains key < this->id.
 public:
 	struct hash   { constexpr std::size_t operator()(user const *u) const { return u->id; }};
 	struct key_eq { constexpr bool        operator()(user const *a, user const *b) const { return a->id == b->id; }};
@@ -47,11 +47,11 @@ public:
 	// privacy stuff
 	enum class                           privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2 };
 	static privacy_class                 random_privacy_class ();
-	static std::pair<rational, rational> pc_limits(privacy_class);
+	static std::pair<double, double> pc_limits(privacy_class);
 	void									               add_item(item_id_t);
-	void									               generate_weights(std::uniform_real_distribution<float>, size_t slices);
-	std::vector<rational>	               weights_of(std::vector<item_id_t> const & subset);
-	rational							               cached_similarity(user_id_t other);
+	void									               generate_weights(std::uniform_real_distribution<double>, size_t slices);
+	std::vector<double>	                 weights_of(std::vector<item_id_t> const & subset);
+	double							                 cached_similarity(user_id_t other);
 
 	// cyclon stuff
 	void																								 add(user_id_t u);
@@ -71,7 +71,7 @@ public:
 	std::tuple<user*,view_t>	     vicinity_send_gossip(maybe<user_id_t> = none);
 	void													 vicinity_receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
 	void													 vicinity_print_view();
-	rational											 recall() const;
+	double											   recall() const;
 
 	~user() {}
 };

@@ -23,6 +23,12 @@ uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
 
+	if(vm["private"].as<bool>())
+		assert(vm.count("epsilon"));
+	else
+		assert(!vm.count("epsilon"));
+
+
 	// for reproducibility
 	if(vm.count("random-seed"))
 		rng = std::default_random_engine{vm["random-seed"].as<uint32_t>()};
@@ -75,18 +81,14 @@ int main(int argc, char *argv[]) {
 	}
 	std::cout << "100%" << std::endl;
 
-	ba::accumulator_set<rational, ba::features<ba::tag::sum>> acc;
-	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc2;
+	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
 
 	for(auto a : joined_peers)
 	{
 		auto recall = a->recall();
-		std::cout << "recall("<<(a->id)<<") = " << boost::rational_cast<float>(recall) << std::endl ;
+		std::cout << "recall("<<(a->id)<<") = " << recall << std::endl ;
 		acc(recall);
-		acc2(boost::rational_cast<double>(recall));
-		//a->print_view();
 	}
-	std::cout << "average recall (rational) = " << boost::rational_cast<float>( ba::sum(acc) / rational{joined_peers.size()}) << std::endl ;
-	std::cout << "average recall = " << (ba::sum_kahan(acc2) / joined_peers.size()) << std::endl ;
+	std::cout << "average recall = " << (ba::sum_kahan(acc) / static_cast<double>(joined_peers.size())) << std::endl ;
 	return 0;
 }

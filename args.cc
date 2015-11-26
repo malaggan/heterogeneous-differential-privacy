@@ -15,7 +15,9 @@ void parse_args(int ac, char *av[]) {
 	general.add_options()
 		("dataset,f", po::value<std::string>()->default_value("delicious.txt"), "dataset to use (can also be given directly)")
     ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
-		("epsilon,e", po::value<float>()->default_value(3.0f), "the differential privacy parameter")
+		("private,p", po::bool_switch()->default_value(false), "enable differential privacy (via the Laplacian mechanism)")
+		("epsilon,e", po::value<double>(), "the differential privacy parameter")
+		("secure,h", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov")
 		;
 	po::options_description output("Output options");
 	output.add_options()
@@ -28,14 +30,14 @@ void parse_args(int ac, char *av[]) {
 	groups.add_options()
 		("naive,n", po::bool_switch()->default_value(false), "naive groups mode")
 		("groups,g",po::bool_switch()->default_value(false), "standard groups mode")
-		("unconcerned", po::value<float>(), "ratio of the unconcerned group (0 - 1)")
-		("normal", po::value<float>(), "ratio of the normal group (0 - 1)")
-		("concerned", po::value<float>(), "ratio of the concerned group (0 - 1)")
+		("unconcerned", po::value<double>(), "ratio of the unconcerned group (0 - 1)")
+		("normal", po::value<double>(), "ratio of the normal group (0 - 1)")
+		("concerned", po::value<double>(), "ratio of the concerned group (0 - 1)")
 		;
 	po::options_description slices("slices options");
 	slices.add_options()
 		("slices,s", po::value<int>(), "the number of slices")
-		("min,u", po::value<float>(), "min epsilon for slices (0 - 1)")
+		("min,u", po::value<double>(), "min epsilon for slices (0 - 1)")
 		;
 	po::options_description cmdline_options;
 	cmdline_options.add(help).add(general).add(output).add(groups).add(slices);

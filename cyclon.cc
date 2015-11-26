@@ -97,7 +97,7 @@ void user::cyclon_print_view() {
 		cout << 'R'
 		     << setfill('0') << setw(2) << right << current_cycle;
 		for (auto neighbor : cyclon_view | ::helpers::map_ids)
-			if( cached_similarity(neighbor) > rational{0} )
+			if( cached_similarity(neighbor) > 0 )
 				cout << setfill(' ') << setw(4) << right << neighbor << ": "
 				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
 		cout << endl;
