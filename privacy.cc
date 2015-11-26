@@ -14,11 +14,11 @@ add_item(item_id_t i) {
 }
 
 void user::
-generate_weights(std::uniform_real_distribution<float> /*pc*/) {
+generate_weights(std::uniform_real_distribution<float> pc, size_t slices) {
 	assert(privacy_weights.empty());
 	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
-	for(item_id_t const & item : items)
-		privacy_weights[item] = rational{1}; //pc(rng); XXX for debugging: no privacy groups TODO we need rational-from-double here
+	for(item_id_t const & item : training_items) // only training_items need weight
+		privacy_weights[item] = rational{static_cast<uint64_t>(std::ceil(pc(rng)* slices)), slices};
 }
 
 auto user::
@@ -47,10 +47,15 @@ std::vector<rational> user::
 weights_of(std::vector<item_id_t> const & subset) {
 	if(privacy_weights.empty()) {
 		rational min, max;
+		//--- thsese two lines set apart the difference between HDP groups and no-groups
+		auto slices = 1000u;
 		std::tie(min, max) = pc_limits(random_privacy_class());
+		//---
 		assert(0 <= min && min <= 1);
 		assert(0 <= max && max <= 1);
-		generate_weights(std::uniform_real_distribution<float>{boost::rational_cast<float>(min), boost::rational_cast<float>(max)});
+		generate_weights(
+			std::uniform_real_distribution<float>{boost::rational_cast<float>(min), boost::rational_cast<float>(max)},
+			slices);
 	}
 
 	// return only the weigts for items in the `subset'

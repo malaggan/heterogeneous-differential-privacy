@@ -49,7 +49,7 @@ public:
 	static privacy_class                 random_privacy_class ();
 	static std::pair<rational, rational> pc_limits(privacy_class);
 	void									               add_item(item_id_t);
-	void									               generate_weights(std::uniform_real_distribution<float>);
+	void									               generate_weights(std::uniform_real_distribution<float>, size_t slices);
 	std::vector<rational>	               weights_of(std::vector<item_id_t> const & subset);
 	rational							               cached_similarity(user_id_t other);
 
