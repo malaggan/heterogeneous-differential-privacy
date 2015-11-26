@@ -4,7 +4,7 @@ default: all
 CXX = g++
 
 CXXFLAGS:= -std=c++14 #-mmpx
-LDFLAGS := #-lmpxwrappers
+LDFLAGS := -lboost_program_options #-lmpxwrappers
 
 WARN := -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat # -Werror
 OPT  := -O3

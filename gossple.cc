@@ -23,11 +23,10 @@ extern void parse_args(int argc, char *argv[]);
 
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
-	// cmdline args: dataset, random seed (fixed or asked for new randomness), epsilon, groups-or-slices, if slices ( num slices, min epsilon ), if groups ( naive-or-standard, percentages of the groups )
 	parse_args(argc, argv);
 
 
-	assert(argc == 2);
+	// assert(argc == 2);
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
 

@@ -1,25 +1,57 @@
-#include <boost/program_options/option.hpp>
-namespace po = boost::program_options;
-void parse_args(int argc, char *argv[]) {
-	po::options_description desc("Allowed options");
-	desc.add_options()
-    ("help", "produce help message")
-    ("compression", po::value<int>(), "set compression level")
-		;
+#include "args.hh"
+#include <iostream>
+#include <string>
 
-	po::variables_map vm;
-	po::store(po::parse_command_line(ac, av, desc), vm);
+po::variables_map vm; // global, all code can access it to retreive options
+using namespace std;
+void parse_args(int ac, char *av[]) {
+	// cmdline args: epsilon, groups-or-slices, if slices ( num slices, min epsilon ),
+
+	po::options_description help("Help options");
+	help.add_options()
+    ("help,h", "produce help message")
+		;
+	po::options_description general("General options");
+	general.add_options()
+		("dataset,f", po::value<std::string>()->default_value("delicious.txt"), "dataset to use (can also be given directly)")
+    ("random-seed,r", po::value<int>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
+		("epsilon,e", po::value<float>()->default_value(3.0f), "the differential privacy parameter")
+		;
+	po::options_description output("Output options");
+	output.add_options()
+		("output,o", po::value<std::string>(), "file to write results to. If not specified, results are written to standard output")
+		("append,a", po::bool_switch()->default_value(false), "append to the specified output file. If not present, output file is overwritten")
+		("log", po::value<std::string>(), "file to write log to. If not specified, log messages are written to standard error")
+		("noclobber", po::bool_switch()->default_value(false), "abort if output file or log file are present, do not override them. This option is ignored if stdout and stderr are used")
+		;
+	po::options_description groups("Groups options");
+	groups.add_options()
+		("naive,n", po::bool_switch()->default_value(false), "naive groups mode")
+		("groups,g",po::bool_switch()->default_value(false), "standard groups mode")
+		("unconcerned", po::value<float>(), "ratio of the unconcerned group (0 - 1)")
+		("normal", po::value<float>(), "ratio of the normal group (0 - 1)")
+		("concerned", po::value<float>(), "ratio of the concerned group (0 - 1)")
+		;
+	po::options_description slices("slices options");
+	slices.add_options()
+		("slices,s", po::value<int>(), "the number of slices")
+		("min,u", po::value<float>(), "min epsilon for slices (0 - 1)")
+		;
+	po::options_description cmdline_options;
+	cmdline_options.add(help).add(general).add(output).add(groups).add(slices);
+
+	po::options_description config_file_options;
+	config_file_options.add(general).add(output).add(groups).add(slices);
+
+	po::positional_options_description p;
+	p.add("dataset", 1);
+
+	po::store(po::command_line_parser(ac, av).options(cmdline_options).positional(p).run(), vm);
+	//po::store(po::parse_config_file<char>(".gossple", config_file_options), vm);
 	po::notify(vm);
 
 	if (vm.count("help")) {
-    cout << desc << "\n";
-    return 1;
-	}
-
-	if (vm.count("compression")) {
-    cout << "Compression level was set to "
-				 << vm["compression"].as<int>() << ".\n";
-	} else {
-    cout << "Compression level was not set.\n";
+    cout << cmdline_options << "\n";
+    exit(1);
 	}
 }
