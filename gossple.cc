@@ -24,20 +24,14 @@ extern void parse_args(int argc, char *argv[]);
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
-
-
-	// assert(argc == 2);
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
-
 	// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
-
-
 	user::set_t joined_peers;
 
 	int last = 0;
 	std::cout << "Initializing peers:";
-	auto N = dataset_get_num_users(argv[1]);
+	auto N = dataset_get_num_users();
 	for(auto i : boost::counting_range(0ul, N))
 	{
 		auto peer = new user{i, joined_peers, all_peers};
@@ -51,7 +45,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 	std::cout << "100%" << std::endl;
-	load_dataset(argv[1], all_peers);
+	load_dataset(all_peers);
 
 	last = 0;
 	std::cout << "Simulating cycles:" << std::endl;

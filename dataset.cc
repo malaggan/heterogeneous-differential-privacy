@@ -1,3 +1,4 @@
+#include "args.hh"
 #include "dataset.hh"
 #include "abstract_user.hh"
 #include <boost/range/istream_range.hpp>
@@ -9,8 +10,9 @@
 
 std::istream& operator>>(std::istream& in, item& p) { in >> p.first; in >> p.second; return in; }
 
-size_t dataset_get_num_users(std::string path)
+size_t dataset_get_num_users()
 {
+	std::string path = vm["dataset"].as<std::string>();
 	auto f = std::ifstream{ path };
 	assert(f);
 	std::string signature;
@@ -24,10 +26,11 @@ size_t dataset_get_num_users(std::string path)
 // keep track of which items are used by at most one user, so they are never used in the test set
 std::unordered_set<item_id_t> used_more_than_once;
 
-void load_dataset(std::string path, all_t & all_peers)
+void load_dataset(all_t & all_peers)
 {
 	using namespace std;
 	using namespace std::placeholders;
+	string path = vm["dataset"].as<string>();
 	auto f = ifstream{ path };
 	assert(f);
 	string signature;
