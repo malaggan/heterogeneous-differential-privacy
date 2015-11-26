@@ -13,20 +13,24 @@
 #include <iostream>
 #include <algorithm>
 #include <functional>
+#include <boost/program_options/option.hpp>
 
 all_t all_peers;
 
 namespace ba = boost::accumulators;
+namespace po = boost::program_options;
+
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
+	// cmdline args: dataset, random seed (fixed or asked for new randomness), epsilon, groups-or-slices, if slices ( num slices, min epsilon ), if groups ( naive-or-standard, percentages of the groups )
+
+
 	assert(argc == 2);
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
-	// for each user: has a test set and a training set
-	// the test set should not include items which no one else has; this will raise recall)
-	// similarity computation is one on the two training sets
-	// recall computation is done on test set vs (test+training)
 	// TODO: is search (recall) done also on RPS view??
+
 	// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
+
 
 	user::set_t joined_peers;
 
