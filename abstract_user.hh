@@ -6,13 +6,6 @@
 #include <set>
 #include <tuple>
 
-// TODO these file lines to be moved to .cc
-#include <boost/accumulators/statistics/sum.hpp>
-#include <boost/range/algorithm/set_algorithm.hpp>
-#include <boost/range/algorithm_ext/for_each.hpp>
-#include <boost/accumulators/accumulators.hpp>
-namespace ba = boost::accumulators;
-
 #include "random_sample.tcc"
 #include "view.hh"
 
@@ -21,7 +14,10 @@ using all_t     = std::unordered_map<user_id_t, user*>; // change here must refe
 
 class user final {
 public:
+	enum class                           privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2, NORMAL_HOMOGENEOUS = 3, NONE = 4 };
+
 	user_id_t																 id;
+	privacy_class                            prv_cls;
 	view_t																	 cyclon_view;
 	all_t																		 &all_peers;
 	view_t																	 vicinity_view;
@@ -43,11 +39,9 @@ public:
 		}
 	};
 
-	explicit user(user_id_t me, set_t &already_joined, all_t &all_peers);
+	explicit user(user_id_t me, set_t &already_joined, all_t &all_peers, privacy_class prv_cls);
 	// privacy stuff
-	enum class                           privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2 };
-	static privacy_class                 random_privacy_class ();
-	static std::pair<double, double> pc_limits(privacy_class);
+	static std::pair<double, double>     pc_limits(privacy_class);
 	void									               add_item(item_id_t);
 	void									               generate_weights(std::uniform_real_distribution<double>, size_t slices);
 	std::vector<double>	                 weights_of(std::vector<item_id_t> const & subset);

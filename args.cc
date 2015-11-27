@@ -36,7 +36,7 @@ void parse_args(int ac, char *av[]) {
 		;
 	po::options_description slices("slices options");
 	slices.add_options()
-		("slices,s", po::value<int>(), "the number of slices")
+		("slices,s", po::value<uint32_t>(), "the number of slices")
 		("min,u", po::value<double>(), "min epsilon for slices (0 - 1)")
 		;
 	po::options_description cmdline_options;

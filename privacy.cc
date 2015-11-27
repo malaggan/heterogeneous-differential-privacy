@@ -2,6 +2,14 @@
 #include "abstract_user.hh"
 #include "laplace.hh"
 
+// TODO these file lines to be moved to .cc
+#include <boost/accumulators/statistics/sum.hpp>
+#include <boost/range/algorithm/set_algorithm.hpp>
+#include <boost/range/algorithm/for_each.hpp> // one input
+#include <boost/range/algorithm_ext/for_each.hpp> // two inputs
+#include <boost/accumulators/accumulators.hpp>
+namespace ba = boost::accumulators;
+
 void user::
 add_item(item_id_t i) {
 	extern std::unordered_set<item_id_t> used_more_than_once;
@@ -23,23 +31,13 @@ generate_weights(std::uniform_real_distribution<double> pc, size_t slices) {
 		privacy_weights[item] = static_cast<uint64_t>(std::ceil(pc(rng)* slices)) / static_cast<double>(slices);
 }
 
-auto user::
-random_privacy_class () -> privacy_class {
-	switch (std::uniform_int_distribution<uint8_t>{0,2}(rng)) {
-	case 0: return privacy_class::CONCERNED;
-	case 1: return privacy_class::NORMAL;
-	case 2: return privacy_class::UNCONCERNED;
-	default : assert(false);
-	}
-	assert(false);
-}
-
 std::pair<double, double> user::
 pc_limits(privacy_class pc) {
 	switch(pc) {
-	case privacy_class::CONCERNED:      return std::make_pair(0, 1);
-	case privacy_class::NORMAL:         return std::make_pair(0.5, 1);
-	case privacy_class::UNCONCERNED:    return std::make_pair(0.9, 1);
+	case privacy_class::CONCERNED:					 return std::make_pair(0, 1);
+	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1);
+	case privacy_class::NORMAL_HOMOGENEOUS:  return std::make_pair(0.5, 0.5);
+	case privacy_class::UNCONCERNED:				 return std::make_pair(0.9, 1);
 	default: assert(false);
 	}
 	assert(false);
@@ -47,11 +45,37 @@ pc_limits(privacy_class pc) {
 
 std::vector<double> user::
 weights_of(std::vector<item_id_t> const & subset) {
-	if(privacy_weights.empty()) {
+	if(!vm["private"].as<bool>())
+		// do not generate any weights if privacy is not enabled
+		return std::vector<double>{};
+
+	if(privacy_weights.empty()) { // if not cached, need to generate
 		double min, max;
 		//--- thsese two lines set apart the difference between HDP groups and no-groups
-		auto slices = 1000u;
-		std::tie(min, max) = pc_limits(random_privacy_class());
+
+		// must have exactly one of the three
+		assert(vm["naive" ].as<bool>() or
+		       vm["groups"].as<bool>() or
+		       vm.count("slices"));
+
+		// not implemented yet
+		assert(!vm["naive"].as<bool>());
+
+		if(vm["groups"].as<bool>()) {
+			assert(!vm["naive"].as<bool>()); // mutually exclusive
+			assert(!vm.count("slices")); // mutually exclusive
+			// XXX COMPLETE HERE
+
+		} else {
+			assert( vm.count("slices")); // must be true by previous assertions
+			assert(!vm["naive" ].as<bool>()); // mutually exclusive
+			assert(!vm["groups"].as<bool>()); // mutually exclusive
+			// XXX COMPLETE HERE
+
+		}
+
+		auto slices = 1000u; // TODO read from options
+		std::tie(min, max) = pc_limits(prv_cls);
 		//---
 		assert(0 <= min && min <= 1);
 		assert(0 <= max && max <= 1);
@@ -88,16 +112,22 @@ cached_similarity(user_id_t other) {
 	std::vector<item_id_t> intersection;
 	boost::set_intersection(training_items, all_peers[other]->training_items, std::back_inserter<>(intersection));
 
-	ba::accumulator_set<double, ba::features<ba::tag::sum>> acc;
+	double inner_prod{0.0};
 
-	boost::range::for_each(weights_of(intersection),
-	                       all_peers[other]->weights_of(intersection),
-	                       std::bind(std::ref(acc),
-	                                 std::bind(std::multiplies<double>(),
-	                                           std::placeholders::_1,
-	                                           std::placeholders::_2)));
+	if(vm["private"].as<bool>()) {
+		ba::accumulator_set<double, ba::features<ba::tag::sum>> acc;
+		boost::range::for_each(weights_of(intersection),
+		                       all_peers[other]->weights_of(intersection),
+		                       std::bind(std::ref(acc),
+		                                 std::bind(std::multiplies<double>(),
+		                                           std::placeholders::_1,
+		                                           std::placeholders::_2)));
+
+		inner_prod = ba::sum(acc);
+	} else {
+		inner_prod = intersection.size();
+	}
 	// divide squared inner product by size1 * size2 to get cosine similarity
-	double inner_prod{ba::sum(acc)};
 	inner_prod *= inner_prod;
 
 	//std::cout << "squared cossim "
