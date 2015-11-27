@@ -1,11 +1,11 @@
 #include "abstract_user.hh"
 #include "dataset.hh"
-
+#include "log.hh"
 #include <boost/range/algorithm/set_algorithm.hpp>
 #include <boost/function_output_iterator.hpp>
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/lambda/lambda.hpp>
-#include <iostream>
+#include <sstream>
 #include <iomanip>
 #include <set>
 
@@ -13,9 +13,9 @@ using boost::make_function_output_iterator;
 using boost::lambda::var;
 using boost::lambda::_1;
 using boost::copy;
+using std::ostringstream;
 using std::setw;
-using std::cout;
-using std::endl;
+using std::ends;
 using std::setfill;
 using std::setw;
 using std::left;
@@ -32,6 +32,7 @@ void user::vicinity_print_view() {
 
 	if(this->id == 1) {
 		extern uint32_t current_cycle;
+		ostringstream cout;
 		cout << 'V'
 		     << setfill('0') << setw(2) << right << current_cycle << ' '
 		     << setfill(' ') << setw(8) << left << recall();
@@ -41,7 +42,9 @@ void user::vicinity_print_view() {
 				cout << setfill(' ') << setw(4) << right << neighbor << ": "
 				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
 		cout << ')';
-		cout << endl;
+		cout << ends;
+		static logger l{"print_view"};
+		l.runlog(cout.str());
 	}
 }
 

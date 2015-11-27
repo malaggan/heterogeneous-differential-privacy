@@ -4,11 +4,13 @@
 #include <vector>
 #include <iostream>
 namespace log {
-	std::string va_to_str(char const * fmt, va_list *args) {
-		auto len = vsnprintf(0, 0, fmt, *args);
+	std::string va_to_str(char const * fmt, va_list args) {
+		va_list v;
+		va_copy(v, args);
+		auto len = vsnprintf(0, 0, fmt, v);
 		std::vector<char> str;
 		str.resize(len + 1); // length excludes terminating null
-		vsnprintf(str.data(), len + 1, fmt, *args);
+		vsnprintf(str.data(), len + 1, fmt, args);
 		return std::string{str.data()};
 	}
 
@@ -20,15 +22,15 @@ namespace log {
 
 logger* logger::most_recent_run = nullptr;
 static void logtime();
-constexpr bool const use_arabic_locale = true;
+constexpr bool const use_arabic_locale = false;
 
-static void vprint(std::string const & component, std::string & msg) {
+static void vprint(std::string const & component, std::string const & msg) {
 	logtime();
 	if(use_arabic_locale) log::produce(log_type::LOG, "\xE2\x80\x8E"); // LTR character
 	// TODO use ncurses, also to detect color support
 
 	log::produce(log_type::LOG, "\033[37;1m[\033[32;1m");
-	log::produce(log_type::LOG, component.c_str());
+	log::produce(log_type::LOG, component);
 	log::produce(log_type::LOG, "\033[37;1m]\033[0m: ");
 	log::produce(log_type::LOG, msg);
 	if(use_arabic_locale) log::produce(log_type::LOG, "\xE2\x80\x8E"); // LTR character
@@ -36,33 +38,37 @@ static void vprint(std::string const & component, std::string & msg) {
 
 void logger::log(std::string const &msg) {
 	most_recent_run = nullptr;
-	this->log("%s", msg.c_str());
+	vprint(component, msg);
+	log::produce(log_type::LOG, "\n");
 }
 
 void logger::log(char const * fmt, ...) {
-	va_list args;
+	va_list args, v;
 	va_start(args, fmt);
-	auto str = log::va_to_str(fmt, &args);
+	va_copy(v, args);
+	auto msg = log::va_to_str(fmt, v);
 	va_end(args);
 
-	vprint(component.c_str(), str);
-
-	most_recent_run = nullptr;
-	log::produce(log_type::LOG, "\n");
+	log(msg);
 }
-// TODO: output to a file (tee) for logging purposes
-void logger::runlog(char const * fmt, ...) {
-	va_list args;
-	va_start(args, fmt);
-	auto str = log::va_to_str(fmt, &args);
-	va_end(args);
 
-	if(most_recent_run == this)
+void logger::runlog(std::string const &msg) {
+	if(most_recent_run && most_recent_run->component == this->component)
 		log::produce(log_type::LOG, "\033[1F"); // move one line up
 	most_recent_run = this;
 
-	vprint(component.c_str(), str);
+	vprint(component, msg);
 	log::produce(log_type::LOG, "\n");
+}
+
+void logger::runlog(char const * fmt, ...) {
+	va_list args, v;
+	va_start(args, fmt);
+	va_copy(v, args);
+	auto msg = log::va_to_str(fmt, v);
+	va_end(args);
+
+	runlog(msg);
 }
 
 #include <iostream>
@@ -81,5 +87,5 @@ void logtime() {
 		<< std::put_time(&tm, "%c")
 		<< "\033[37;1m]\033[0m: "
 		<< ' '; // %Z for timezone.
-	log::produce(log_type::LOG, s.str().c_str());
+	log::produce(log_type::LOG, s.str());
 }

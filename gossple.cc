@@ -4,6 +4,7 @@
 #include "dataset.hh"
 #include "abstract_user.hh"
 #include "filesystem.hh"
+#include "log.hh"
 #include <boost/range/counting_range.hpp>
 #include <boost/accumulators/statistics/sum.hpp>
 #include <boost/accumulators/statistics/sum_kahan.hpp>
@@ -12,6 +13,7 @@
 #include <cassert>
 #include <typeinfo>
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <algorithm>
 #include <functional>
@@ -27,8 +29,10 @@ namespace gossple {
 		if(fs::exists(output))
 		{
 			if(vm["noclobber"].as<bool>()) {
-				std::cout << "File \"" << fname << "\" already exists, but --noclobber has been set. "
-					"Cannot produce output. Quitting..." << std::endl;
+				std::ostringstream cout;
+				cout << "File \"" << fname << "\" already exists, but --noclobber has been set. "
+					"Cannot produce output. Quitting..." << std::ends;
+				logger{"redirect"}.log(cout.str());
 				exit(1);
 			}
 			if(vm["append"].as<bool>())
@@ -46,7 +50,6 @@ namespace gossple {
 all_t all_peers;
 namespace ba = boost::accumulators;
 
-#include "log.hh"
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
@@ -54,9 +57,7 @@ int main(int argc, char *argv[]) {
 	if(vm.count("output")) gossple::redirect("output", gossple::out, std::cout);
 	if(vm.count("log"   )) gossple::redirect("log"   , gossple::log, std::clog);
 
-	logger l{"الرئيسية"};
-	l.log(u8"اختبار");
-	return 0;
+	logger l{"main"};
 
 	if(vm["private"].as<bool>())
 	{
@@ -76,26 +77,29 @@ int main(int argc, char *argv[]) {
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
 
-	std::cout << "Initializing peers:";
+	l.log("Initializing peers");
+
 	auto joined_peers = load_dataset();
 
 
-	std::cout << "Simulating cycles:" << std::endl;
+
+	l.log("Simulating cycles");
 	for(auto i : boost::counting_range(0u, cycles))
 	{
 		current_cycle++;
 		boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));
 	}
-	std::cout << "100%" << std::endl;
+	l.log("All cycles finished");
 
 	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
 
 	for(auto a : joined_peers)
 	{
 		auto recall = a->recall();
-		std::cout << "recall("<<(a->id)<<") = " << recall << std::endl ;
+		l.log("recall(%d) = %f", a->id, recall);
 		acc(recall);
 	}
-	std::cout << "average recall = " << (ba::sum_kahan(acc) / static_cast<double>(joined_peers.size())) << std::endl ;
+
+	std::cout << (ba::sum_kahan(acc) / static_cast<double>(joined_peers.size())) << std::endl ;
 	return 0;
 }

@@ -1,47 +1,18 @@
 #include "conf.hh"
 #include "ventry.hh"
 #include "abstract_user.hh"
-#include <iostream>
-#include <iomanip>
 
-auto similarity(ventry &a, ventry &b) {
-	extern all_t all_peers;
-	return all_peers[a.id]->cached_similarity(b.id);
-}
-
-auto similarity(user &a, user &b) {
-	return a.cached_similarity(b.id);
-}
-
-auto similarity(user &a, ventry &b) {
-	return a.cached_similarity(b.id);
-}
-
-// more_similar_to(this_guy, a, b)
-// returns true if a is more similar to reference than b
-bool more_similar(user &reference, ventry &a, ventry &b) {
-	return similarity(reference, a) > similarity(reference, b);
-}
-
-bool less_similar(user &reference, ventry &a, ventry &b, bool log) {
-	if(log && reference.id == 1) {
-		using namespace std;
-
-		cout << "similarity(1, a["<<a.id<<"]) "<<similarity(reference, a)<<" < " << similarity(reference, b) << " similarity(1, b["<<b.id<<"]) //"
-		     << similarity(reference, b) << " "
-		     << boolalpha << (similarity(reference, a) < similarity(reference, b))
-		     << endl;
-	}
-	return similarity(reference, a) < similarity(reference, b);
-}
+double similarity(ventry &a, ventry &b);
+double similarity(user &a, user &b);
+double similarity(user &a, ventry &b);
+bool more_similar(user &reference, ventry &a, ventry &b);
+bool less_similar(user &reference, ventry &a, ventry &b);
 
 #include <functional>
-struct semantic_comp : public std::binary_function<user&, ventry&, bool>{
+struct semantic_comp : public std::function<bool(ventry&, ventry&)>{
 	user *ref;
-	bool log;
-	/*explicit*/ semantic_comp(user *ref) : ref{ref}, log{false} {}
+	/*explicit*/ semantic_comp(user *ref) : ref{ref} {}
 	bool operator()(ventry &a, ventry &b) {
-		return less_similar(*ref, a, b, log);
+		return less_similar(*ref, a, b);
 	}
-	auto id() { return ref -> id; }
 };

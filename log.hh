@@ -16,6 +16,7 @@ public:
 	logger & operator=(logger     &&) = delete;
 
 	void log(std::string const &msg);
+	void runlog(std::string const &msg);
 
 	[[gnu::format(printf,2,3)]]
 	void log(char const * fmt, ...);

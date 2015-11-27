@@ -2,6 +2,7 @@
 #include "random_sample.tcc"
 #include "random.hh"
 #include "abstract_user.hh"
+#include "log.hh"
 
 #include <boost/function_output_iterator.hpp>
 #include <boost/range/algorithm/find_if.hpp>
@@ -9,14 +10,15 @@
 #include <boost/range/algorithm/copy.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <algorithm>
-#include <iostream>
 #include <iterator>
 #include <cassert>
 #include <iomanip>
 #include <deque>
+#include <sstream>
 
 using boost::make_function_output_iterator;
 using boost::algorithm::copy_if;
+using std::ostringstream;
 using boost::lambda::var;
 using std::back_inserter;
 using boost::lambda::_1;
@@ -30,8 +32,7 @@ using std::begin;
 using std::tuple;
 using std::deque;
 using std::setw;
-using std::cout;
-using std::endl;
+using std::ends;
 using std::cend;
 using std::end;
 using std::tie;
@@ -93,6 +94,7 @@ void user::cyclon_print_view() {
 	// cout << endl;
 
 	if(this->id == 1) {
+		ostringstream cout;
 		extern uint32_t current_cycle;
 		cout << 'R'
 		     << setfill('0') << setw(2) << right << current_cycle;
@@ -100,7 +102,9 @@ void user::cyclon_print_view() {
 			if( cached_similarity(neighbor) > 0 )
 				cout << setfill(' ') << setw(4) << right << neighbor << ": "
 				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
-		cout << endl;
+		cout << ends;
+		static logger l{"print_view"};
+		l.runlog(cout.str());
 	}
 }
 

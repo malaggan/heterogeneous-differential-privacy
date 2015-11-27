@@ -1,6 +1,5 @@
 #pragma once
-
-//#include "heap.tcc"
+// TODO try heap.tcc again
 #include <boost/range/algorithm/heap_algorithm.hpp>
 #include <boost/range/algorithm/min_element.hpp>
 #include <array>
@@ -8,7 +7,7 @@
 #include <boost/range/algorithm_ext/copy_n.hpp>
 #include <boost/range/algorithm/for_each.hpp>
 #include <boost/range/iterator_range.hpp>
-#include <iostream>
+
 template<typename T, size_t N>
 using base_q = std::array<T, N>;
 
@@ -26,9 +25,7 @@ template<typename T, size_t N, typename Comparator = std::greater<T>> // Compara
 			push_all(range);
 		}
 
-		auto range()       { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
-		//auto range() const { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
-
+		auto range()        { auto arr = base_q<T, N>::data(); return boost::make_iterator_range(arr, arr + last); }
 		size_t size() const { return last; }
 
 		// insert an element and sift it down
@@ -46,37 +43,17 @@ template<typename T, size_t N, typename Comparator = std::greater<T>> // Compara
 			if(last < N)
 			{
 				arr[last++] = value;
-
-				//::heapify(range(), comp);
 				boost::make_heap(range(), comp);
 			}
 			// ...but if the capacity is full, do not do anything unless the new item is (strictly) greater than to our smallest value.
 			// `comp' is a model of "<".
 			else {
-				if(comp.id() == 1) comp.log = false;
 				for(auto it = std::begin(*this); it != std::end(*this); it++)
 					if(comp(*it, value)) {
-						if(comp.id() == 1) {
-							std::cout << "O";
-							comp.log = false;
-						}
 						*it = value;
 						boost::make_heap(range(), comp);
 						return *this;
 					}
-				if(comp.id() == 1) comp.log = false;
-				if(comp.id() == 1) std::cout << "X";
-				// auto min = boost::min_element(range(), comp);
-				// if(comp(*min, value)) {
-				//		*min = value;
-				//		boost::make_heap(range(), comp);
-				//		if(comp.id() == 1) std::cout << "O";
-				// } else {
-				//		// sanity check
-				//		for(auto & x : *this) assert(comp(value, x));
-				//		if(comp.id() == 1)
-				//				std::cout << "X";
-				// }
 			}
 
 			return *this; // allow chaining
