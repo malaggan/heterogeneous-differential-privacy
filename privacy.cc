@@ -2,7 +2,6 @@
 #include "abstract_user.hh"
 #include "laplace.hh"
 
-// TODO these file lines to be moved to .cc
 #include <boost/accumulators/statistics/sum.hpp>
 #include <boost/range/algorithm/set_algorithm.hpp>
 #include <boost/range/algorithm/for_each.hpp> // one input
@@ -24,7 +23,7 @@ add_item(item_id_t i) {
 }
 
 void user::
-generate_weights(std::uniform_real_distribution<double> pc, size_t slices) {
+generate_weights(std::uniform_real_distribution<double> pc, uint32_t slices) {
 	assert(privacy_weights.empty());
 	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
 	for(item_id_t const & item : training_items) // only training_items need weight
@@ -34,11 +33,16 @@ generate_weights(std::uniform_real_distribution<double> pc, size_t slices) {
 std::pair<double, double> user::
 pc_limits(privacy_class pc) {
 	switch(pc) {
-	case privacy_class::CONCERNED:					 return std::make_pair(0, 1);
-	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1);
+	case privacy_class::CONCERNED:					 return std::make_pair(0.0, 1.0);
+	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1.0);
 	case privacy_class::NORMAL_HOMOGENEOUS:  return std::make_pair(0.5, 0.5);
-	case privacy_class::UNCONCERNED:				 return std::make_pair(0.9, 1);
-	case privacy_class::NONE:				         return std::make_pair(1, 1);
+	case privacy_class::UNCONCERNED:				 return std::make_pair(0.9, 1.0);
+	case privacy_class::SLICES: {
+		assert(vm.count("min"));
+		auto min = vm["min"].as<double>();
+		assert(0.0 <= min && min <= 1.0);			 return std::make_pair(min, 1.0);
+	}
+	case privacy_class::BASELINE:            assert(false);  // if not private, there is no point calling this.
 	default: assert(false);
 	}
 	assert(false);
@@ -52,34 +56,14 @@ weights_of(std::vector<item_id_t> const & subset) {
 
 	if(privacy_weights.empty()) { // if not cached, need to generate
 		double min, max;
-		//--- thsese two lines set apart the difference between HDP groups and no-groups
+		// naive, groups, or slices, are handled in dataset.cc and prv_cls.
+		uint32_t slices = 1;
+		if(vm.count("slices"))
+			slices = vm["slices"].as<uint32_t>();
 
-		// must have exactly one of the three
-		assert(vm["naive" ].as<bool>() or
-		       vm["groups"].as<bool>() or
-		       vm.count("slices"));
-
-		// not implemented yet
-		assert(!vm["naive"].as<bool>());
-
-		if(vm["groups"].as<bool>()) {
-			assert(!vm["naive"].as<bool>()); // mutually exclusive
-			assert(!vm.count("slices")); // mutually exclusive
-			// XXX COMPLETE HERE
-
-		} else {
-			assert( vm.count("slices")); // must be true by previous assertions
-			assert(!vm["naive" ].as<bool>()); // mutually exclusive
-			assert(!vm["groups"].as<bool>()); // mutually exclusive
-			// XXX COMPLETE HERE
-
-		}
-
-		auto slices = 1000u; // TODO read from options
 		std::tie(min, max) = pc_limits(prv_cls);
-		//---
-		assert(0 <= min && min <= 1);
-		assert(0 <= max && max <= 1);
+		assert(0.0 <= min && min <= 1.0);
+		assert(0.0 <= max && max <= 1.0);
 		generate_weights(
 			std::uniform_real_distribution<double>{min, max},
 			slices);

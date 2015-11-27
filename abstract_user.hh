@@ -14,7 +14,9 @@ using all_t     = std::unordered_map<user_id_t, user*>; // change here must refe
 
 class user final {
 public:
-	enum class                           privacy_class : uint8_t { CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2, NORMAL_HOMOGENEOUS = 3, NONE = 4 };
+	enum class privacy_class : uint8_t {
+		CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2,
+			NORMAL_HOMOGENEOUS = 3, SLICES = 4, BASELINE = 5 };
 
 	user_id_t																 id;
 	privacy_class                            prv_cls;
@@ -43,7 +45,7 @@ public:
 	// privacy stuff
 	static std::pair<double, double>     pc_limits(privacy_class);
 	void									               add_item(item_id_t);
-	void									               generate_weights(std::uniform_real_distribution<double>, size_t slices);
+	void									               generate_weights(std::uniform_real_distribution<double>, uint32_t slices);
 	std::vector<double>	                 weights_of(std::vector<item_id_t> const & subset);
 	double							                 cached_similarity(user_id_t other);
 

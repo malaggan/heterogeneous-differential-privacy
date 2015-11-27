@@ -24,9 +24,15 @@ int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
 
 	if(vm["private"].as<bool>())
+	{
 		assert(vm.count("epsilon"));
+		// must have exactly one of the three
+		assert(( vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices")) or
+		       (!vm["naive"].as<bool>() and  vm["groups"].as<bool>() and !vm.count("slices")) or
+		       (!vm["naive"].as<bool>() and !vm["groups"].as<bool>() and  vm.count("slices")));
+	}
 	else
-		assert(!vm.count("epsilon"));
+		assert(!vm.count("epsilon") and !vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices"));
 
 	// for reproducibility
 	if(vm.count("random-seed"))

@@ -79,7 +79,11 @@ static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 	}
 
 	// baseline or private--slices:
-	return some(new user{id, joined_peers, all_peers, user::privacy_class::NONE});
+	if(vm["private"].as<bool>()) {
+		assert(vm.count("slices"));
+		return some(new user{id, joined_peers, all_peers, user::privacy_class::SLICES});
+	}
+	return some(new user{id, joined_peers, all_peers, user::privacy_class::BASELINE});
 }
 
 user::set_t load_dataset()
@@ -111,8 +115,10 @@ user::set_t load_dataset()
 		         if(id > current_id) {
 			         auto u = create_user(current_id++, joined_peers);
 			         if(u == none) {
-				         ignore_id = id; // skip all entries of this user
-				         --current_id; // note: `id' (the one read from the file) is no longer valid here. we depend on our incremental id counter.
+				         // skip all entries of this user
+				         ignore_id = id;
+// note: `id' (the one read from the file) is no longer valid here. we depend on our incremental id counter. Important: by doing this, users with zero items are automatically not included, and this may cause two problems: 1) even in non-naive experiments there maybe a discrepency between the user id in the file and the user id in the program's memory, and 2) there maybe a discrepency between the declared number of users in the file and the actually loaded number.
+				         --current_id;
 				         return;
 			         }
 
@@ -126,5 +132,6 @@ user::set_t load_dataset()
 			         seen.insert(item);
 		         all_peers[current_id - 1]->add_item(item);
 	         });
+	assert(user_count == joined_peers.size()); // if not, the reason maybe the note above ^
 	return joined_peers;
 }

@@ -20,11 +20,7 @@ struct ventry {
 	constexpr bool operator> (cref other) const {return age >  other.age ; }
 	constexpr bool operator>=(cref other) const {return age >= other.age ; }
 
-	// --- Hashing (for unordered_set). Depend on ID only, since no
-	// duplicates are allowed.  For correctness, when two ventry's
-	// collide in a set, the maximum age should be taken. This is
-	// outside of the scope of this class and should be handled in the
-	// container. TODO
+	// ---  Hashing (for unordered_set). Depend on ID only, since no duplicates are allowed. TODO For correctness, when two ventry's collide in a set, the maximum age should be taken. This is outside of the scope of this class and should be handled in the container.
 	struct hash {
 		constexpr std::size_t operator()(cref view_entry) const {
 			return view_entry.id;
