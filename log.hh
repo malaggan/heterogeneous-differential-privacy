@@ -1,5 +1,7 @@
 #include <string>
 
+enum class log_type { OUT = 0, LOG = 1 };
+
 class logger {
 	std::string component;
 public:

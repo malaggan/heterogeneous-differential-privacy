@@ -3,6 +3,7 @@
 #include "args.hh"
 #include "dataset.hh"
 #include "abstract_user.hh"
+#include "filesystem.hh"
 #include <boost/range/counting_range.hpp>
 #include <boost/accumulators/statistics/sum.hpp>
 #include <boost/accumulators/statistics/sum_kahan.hpp>
@@ -11,17 +12,51 @@
 #include <cassert>
 #include <typeinfo>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <functional>
 
+// these must be public so as to no be destructed (and hence, closed),
+// before the application termiantes.
+namespace gossple {
+	std::ofstream out, log;
+
+	void redirect(std::string option_name, std::ofstream &fstream, std::ostream &outstream) {
+		auto fname = vm[option_name].as<std::string>();
+		fs::path output{fname};
+		if(fs::exists(output))
+		{
+			if(vm["noclobber"].as<bool>()) {
+				std::cout << "File \"" << fname << "\" already exists, but --noclobber has been set. "
+					"Cannot produce output. Quitting..." << std::endl;
+				exit(1);
+			}
+			if(vm["append"].as<bool>())
+				fstream = std::ofstream{fname, std::ios::app}; // append to file
+			else
+				fstream = std::ofstream{fname, std::ios::trunc}; // overwrite file
+		} else {
+			fstream = std::ofstream{fname}; // overwrite file
+		}
+		assert(fstream);
+		outstream.rdbuf(fstream.rdbuf()); // TODO do same trick to read input file from cin
+	}
+}
 
 all_t all_peers;
-
 namespace ba = boost::accumulators;
 
+#include "log.hh"
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
+
+	if(vm.count("output")) gossple::redirect("output", gossple::out, std::cout);
+	if(vm.count("log"   )) gossple::redirect("log"   , gossple::log, std::clog);
+
+	logger l{"الرئيسية"};
+	l.log(u8"اختبار");
+	return 0;
 
 	if(vm["private"].as<bool>())
 	{
