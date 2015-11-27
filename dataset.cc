@@ -90,21 +90,18 @@ user::set_t load_dataset()
 {
 	using namespace std;
 	using namespace std::placeholders;
-	string path = vm["dataset"].as<string>();
-	auto f = ifstream{ path };
-	assert(f);
 	string signature;
-	f >> signature;
+	std::cin >> signature;
 	assert(signature == "dims");
 	uint_fast32_t user_count, item_count;
-	f >> user_count >> item_count;
+	std::cin >> user_count >> item_count;
 
 	user_id_t current_id = 0;
 	user_id_t ignore_id = 0;
 	std::unordered_set<item_id_t> seen;
 	user::set_t joined_peers;
 
-	for_each(boost::istream_range<item>(f),
+	for_each(boost::istream_range<item>(std::cin),
 	         [&seen, &joined_peers, &current_id, &ignore_id]
 	         (item const& it) {
 		         auto id = it.first; // starts from 1

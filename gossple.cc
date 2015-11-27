@@ -22,6 +22,7 @@
 // before the application termiantes.
 namespace gossple {
 	std::ofstream out, log;
+	std::ifstream in;
 
 	void redirect(std::string option_name, std::ofstream &fstream, std::ostream &outstream) {
 		auto fname = vm[option_name].as<std::string>();
@@ -43,7 +44,7 @@ namespace gossple {
 			fstream = std::ofstream{fname}; // overwrite file
 		}
 		assert(fstream);
-		outstream.rdbuf(fstream.rdbuf()); // TODO do same trick to read input file from cin
+		outstream.rdbuf(fstream.rdbuf());
 	}
 }
 
@@ -78,10 +79,23 @@ int main(int argc, char *argv[]) {
 	// TODO: is search (recall) done also on RPS view??
 
 	l.log("Initializing peers");
+	if(vm.count("dataset")) {
+		auto fname = vm["dataset"].as<std::string>();
+		if(fname != "-" /*stdin*/) {
+			fs::path path{fname};
+			if(!fs::exists(path)) {
+				l.log("File \"%s\" does not exist. Cannot read dataset. Quitting...", fname.c_str());
+				exit(1);
+			}
+			gossple::in = std::ifstream{fname};
+			std::cin.rdbuf(gossple::in.rdbuf());
 
+			l.log("Reading input dataset from \"%s\"", fname.c_str());
+		} else
+			l.log("Reading input dataset from stdin");
+	} else
+		l.log("Reading input dataset from stdin");
 	auto joined_peers = load_dataset();
-
-
 
 	l.log("Simulating cycles");
 	for(auto i : boost::counting_range(0u, cycles))
