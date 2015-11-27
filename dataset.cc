@@ -10,8 +10,6 @@
 #include <functional>
 // http://stackoverflow.com/a/16546151/397405
 
-extern all_t all_peers;
-
 std::istream& operator>>(std::istream& in, item& p) { in >> p.first; in >> p.second; return in; }
 
 // keep track of which items are used by at most one user, so they are never used in the test set
@@ -75,15 +73,15 @@ static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 		if(vm["naive"].as<bool>())
 			cls = user::privacy_class::NORMAL_HOMOGENEOUS;
 
-		return some(new user{id, joined_peers, all_peers, cls});
+		return some(new user{id, joined_peers, cls});
 	}
 
 	// baseline or private--slices:
 	if(vm["private"].as<bool>()) {
 		assert(vm.count("slices"));
-		return some(new user{id, joined_peers, all_peers, user::privacy_class::SLICES});
+		return some(new user{id, joined_peers, user::privacy_class::SLICES});
 	}
-	return some(new user{id, joined_peers, all_peers, user::privacy_class::BASELINE});
+	return some(new user{id, joined_peers, user::privacy_class::BASELINE});
 }
 
 user::set_t load_dataset()

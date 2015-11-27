@@ -9,9 +9,6 @@
 #include "random_sample.tcc"
 #include "view.hh"
 
-class user;
-using all_t     = std::unordered_map<user_id_t, user*>; // change here must refelct in dataset.hh
-
 class user final {
 public:
 	enum class privacy_class : uint8_t {
@@ -21,7 +18,6 @@ public:
 	user_id_t																 id;
 	privacy_class                            prv_cls;
 	view_t																	 cyclon_view;
-	all_t																		 &all_peers;
 	view_t																	 vicinity_view;
 	std::set<item_id_t>											 items; // has to be sorted to enable set_intersection algorithms
 	std::set<item_id_t>											 training_items, test_items;
@@ -41,7 +37,7 @@ public:
 		}
 	};
 
-	explicit user(user_id_t me, set_t &already_joined, all_t &all_peers, privacy_class prv_cls);
+	explicit user(user_id_t me, set_t &already_joined, privacy_class prv_cls);
 	// privacy stuff
 	static std::pair<double, double>     pc_limits(privacy_class);
 	void									               add_item(item_id_t);

@@ -41,8 +41,8 @@ using std::setw;
 using std::left;
 using std::right;
 
-user::user(user_id_t me, set_t &already_joined, all_t &all_peers, privacy_class prv_cls)
-	: id{me}, prv_cls{prv_cls}, cyclon_view{}, all_peers{all_peers}, vicinity_view{}, items{}, privacy_weights{}, similarities{}
+user::user(user_id_t me, set_t &already_joined, privacy_class prv_cls)
+	: id{me}, prv_cls{prv_cls}, cyclon_view{}, vicinity_view{}, items{}, privacy_weights{}, similarities{}
 {
 	auto bootstrapPeers = already_joined.random_subset(viewSize);
 	for(auto rps_other : bootstrapPeers)
