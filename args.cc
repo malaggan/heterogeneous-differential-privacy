@@ -4,6 +4,7 @@
 
 po::variables_map vm; // global, all code can access it to retreive options
 using namespace std;
+extern double epsilon;
 void parse_args(int ac, char *av[]) {
 	// cmdline args: epsilon, groups-or-slices, if slices ( num slices, min epsilon ),
 
@@ -16,7 +17,7 @@ void parse_args(int ac, char *av[]) {
 		("dataset,f", po::value<std::string>()->default_value("delicious.txt"), "dataset to use (can also be given directly)")
     ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
 		("private,p", po::bool_switch()->default_value(false), "enable differential privacy (via the Laplacian mechanism)")
-		("epsilon,e", po::value<double>(), "the differential privacy parameter")
+		("epsilon,e", po::value<double>(&epsilon), "the differential privacy parameter")
 		("secure,h", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov")
 		;
 	po::options_description output("Output options");

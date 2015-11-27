@@ -11,9 +11,9 @@ double laplace_rv(double scale, double location = double{}) {
 	assert(!vm["secure"].as<bool>());
 	return boost::random::laplace_distribution<double>{location, scale}(rng);
 }
-
+double epsilon; // fill automatically by boost_options.
 double laplace_mechanism(double true_answer, double sensitivity) {
-	return true_answer + laplace_rv( sensitivity / vm["epsilon"].as<double>() ); // TODO: stope epsilon in a global or local var since this path is hot
+	return true_answer + laplace_rv( sensitivity / epsilon );
 }
 
 #if 0 // TODO implement secure laplace

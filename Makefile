@@ -1,8 +1,9 @@
 default: all
 .PHONY: all TAGS
 
-CXX = g++
-
+CXX = g++ # /home/malaggan/opt/bin/g++
+#export SHELL := /usr/bin/bash
+#export PATH := /home/malaggan/opt/bin:$(PATH)
 CXXFLAGS:= -std=c++14 #-mmpx
 LDFLAGS := -lboost_program_options #-lmpxwrappers
 

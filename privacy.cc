@@ -38,6 +38,7 @@ pc_limits(privacy_class pc) {
 	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1);
 	case privacy_class::NORMAL_HOMOGENEOUS:  return std::make_pair(0.5, 0.5);
 	case privacy_class::UNCONCERNED:				 return std::make_pair(0.9, 1);
+	case privacy_class::NONE:				         return std::make_pair(1, 1);
 	default: assert(false);
 	}
 	assert(false);

@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
 
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
-	// TODO: implemen laplacian mechanism (check my sources for cc code for Ilya Mironov paper)
 
 	std::cout << "Initializing peers:";
 	auto joined_peers = load_dataset();
