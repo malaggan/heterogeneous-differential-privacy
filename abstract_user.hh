@@ -13,7 +13,10 @@ class user final {
 public:
 	enum class privacy_class : uint8_t {
 		CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2,
-			NAIVE /*NORMAL_HOMOGENEOUS*/ = 3, SLICES = 4, BASELINE = 5 };
+			NAIVE /*NORMAL_HOMOGENEOUS*/ = 3, SLICES = 4,
+			BASELINE = 5, // no privacy at all
+			BLIND = 6 // random clustering (privacy with random similarity)
+			};
 
 	user_id_t																 id;
 	privacy_class                            prv_cls;

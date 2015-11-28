@@ -17,6 +17,7 @@ void parse_args(int ac, char *av[]) {
 		("dataset,f", po::value<std::string>(), "dataset to use (can also be given positionally). If not specified, dataset is read from standard input (which can also be denoted by -). ")
     ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
 		("private,p", po::bool_switch()->default_value(false), "enable differential privacy (via the Laplacian mechanism)")
+		("blind,b", po::bool_switch()->default_value(false), "random clustering baseline: all private weights are zero")		// add naive variant where max privacy weight is zero instead (akin to providing them with a random view) and where peers are not removed.
 		("epsilon,e", po::value<double>(&epsilon), "the differential privacy parameter")
 		("secure", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov") // TODO
 		;
@@ -36,6 +37,7 @@ void parse_args(int ac, char *av[]) {
 		("normal", po::value<double>(), "ratio of the normal group (0 - 1)")
 		("concerned", po::value<double>(), "ratio of the concerned group (0 - 1)")
 		;
+
 	po::options_description slices("Slices options");
 	slices.add_options()
 		("slices,s", po::value<uint32_t>(), "the number of slices")

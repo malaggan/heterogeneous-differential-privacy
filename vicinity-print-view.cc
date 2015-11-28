@@ -32,19 +32,19 @@ void user::vicinity_print_view() {
 
 	if(this->id == 1) {
 		extern uint32_t current_cycle;
-		ostringstream cout;
-		cout << 'V'
+		ostringstream out;
+		out << 'V'
 		     << setfill('0') << setw(2) << right << current_cycle << ' '
 		     << setfill(' ') << setw(8) << left << recall();
-		cout << '(';
+		out << '(';
 		for (auto neighbor : vicinity_view | ::helpers::map_ids)
 			if( cached_similarity(neighbor) > 0 )
-				cout << setfill(' ') << setw(4) << right << neighbor << ": "
+				out << setfill(' ') << setw(4) << right << neighbor << ": "
 				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
-		cout << ')';
-		cout << ends;
+		out << ')';
+		out << ends;
 		static logger l{"print_view"};
-		l.runlog(cout.str());
+		l.runlog(out.str());
 	}
 }
 

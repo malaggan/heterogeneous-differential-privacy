@@ -60,6 +60,7 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, 
 
 std::string user::cls() const {
 	switch(prv_cls) {
+	case privacy_class::BLIND:            return "BLIND";
 	case privacy_class::CONCERNED:					 return "CONCERNED";
 	case privacy_class::NORMAL:							 return "NORMAL";
 	case privacy_class::NAIVE:               return "NAIVE";

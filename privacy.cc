@@ -30,6 +30,9 @@ generate_weights(std::uniform_real_distribution<double> pc, uint32_t slices) {
 	// TODO: try to use generate_n since it is parallelizable using std::parallel gnu extension
 	for(item_id_t const & item : training_items) { // only training_items need weight
 		switch(prv_cls) {
+		case privacy_class::BLIND:
+			privacy_weights[item] = 0.0;
+			break;
 		case privacy_class::UNCONCERNED:
 			privacy_weights[item] = 1.0;
 			break;
@@ -64,6 +67,7 @@ generate_weights(std::uniform_real_distribution<double> pc, uint32_t slices) {
 std::pair<double, double> user::
 pc_limits(privacy_class pc) {
 	switch(pc) {
+	case privacy_class::BLIND:               return std::make_pair(0.0, 0.0); // FIXME exactly 0
 	case privacy_class::CONCERNED:					 return std::make_pair(0.0, 1.0); // FIXME 0,   0.5 , or 1
 	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1.0); // FIXME 0.5, 0.75, or 1
 	case privacy_class::NAIVE:               return std::make_pair(0.5, 0.5); // FIXME exactly 0.5

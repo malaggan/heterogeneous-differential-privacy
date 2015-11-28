@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
-std::string HEADER{"dataset, seed, user-id, user-class, expr, slices, min, unconcerned, normal, concerned, epsilon, recall"};
+std::string HEADER{"dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,epsilon,recall"};
 
 namespace gossple {
 	// these must be public so as to no be destructed (and hence, closed),
@@ -63,46 +63,48 @@ namespace ba = boost::accumulators;
 template<typename T>
 void print_if_not(std::string const & name, T const & v) {
 	if(!vm[name].as<bool>())
-		std::cout << v << ", ";
+		std::cout << v << ',';
 }
 
 void print_if(std::string const & name) {
 	if(vm[name].as<bool>())
-		std::cout << name << ", ";
+		std::cout << name << ',';
 }
 
 template<typename T>
 void print_or_na_or_either(std::string const & expr1, std::string const & expr2, std::string const & name, T const & v) {
 	if(vm.count(name) or vm[expr1].as<bool>() or vm[expr2].as<bool>())
-		std::cout << v << ", ";
+		std::cout << v << ',';
 	else
-		std::cout << "NA" << ", ";
+		std::cout << ',';
 }
 
 template<typename T>
 void print_or_na(std::string const & name, T const & v) {
 	if(vm.count(name))
-		std::cout << v << ", ";
+		std::cout << v << ',';
 	else
-		std::cout << "NA" << ", ";
+		std::cout << ',';
 }
 
 template<typename T>
 void print_or_na(std::string const & name) {
 	if(vm.count(name))
-		std::cout << vm[name].as<T>() << ", ";
+		std::cout << vm[name].as<T>() << ',';
 	else
-		std::cout << "NA" << ", ";
+		std::cout << ',';
 }
 
-template<typename T>
 void print_or_ignore(std::string const & name) {
 	if(vm.count(name))
-		std::cout << vm[name].as<T>() << ", ";
+		std::cout << name << ',';
 }
+
+#include <boost/interprocess/sync/file_lock.hpp>
 
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
+	// TODO create 8 processes at a time and synchronize them using an interprocess semaphor ?
 	parse_args(argc, argv);
 
 	if(vm.count("output")) { gossple::redirect("output", gossple::out, std::cout); gossple::out_redirected = true; }
@@ -112,18 +114,25 @@ int main(int argc, char *argv[]) {
 
 	if(vm["private"].as<bool>())
 	{
-		assert(vm.count("epsilon"));
+		assert(vm.count("epsilon") or vm["blind"].as<bool>());
 		// must have exactly one of the three
-		assert(( vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices")) or
-		       (!vm["naive"].as<bool>() and  vm["groups"].as<bool>() and !vm.count("slices")) or
-		       (!vm["naive"].as<bool>() and !vm["groups"].as<bool>() and  vm.count("slices")));
+		assert(( vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices") and !vm["blind"].as<bool>()) or
+		       (!vm["naive"].as<bool>() and  vm["groups"].as<bool>() and !vm.count("slices") and !vm["blind"].as<bool>()) or
+		       (!vm["naive"].as<bool>() and !vm["groups"].as<bool>() and  vm.count("slices") and !vm["blind"].as<bool>()) or
+		       (!vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices") and  vm["blind"].as<bool>()));
 	}
 	else
 		assert(!vm.count("epsilon") and !vm["naive"].as<bool>() and !vm["groups"].as<bool>() and !vm.count("slices"));
 
 	// for reproducibility
-	if(vm.count("random-seed"))
-		rng = std::default_random_engine{vm["random-seed"].as<uint32_t>()};
+	uint32_t seed;
+	if(vm.count("random-seed")) {
+		seed = vm["random-seed"].as<uint32_t>();
+	} else {
+		seed = std::uniform_int_distribution<uint32_t>{}(rng);
+	}
+	rng = std::default_random_engine{seed};
+
 
 	// TODO check paper: Push-Pull Functional Reactive Programming - Conal Elliott
 	// TODO: is search (recall) done also on RPS view??
@@ -168,21 +177,26 @@ int main(int argc, char *argv[]) {
 
 	if(vm["header"].as<bool>())
 		std::cout << HEADER << std::endl;
+	boost::interprocess::file_lock flock("/home/malaggan/gossple/.lock");
+	flock.lock();
 	for(auto a : joined_peers)
 	{
+
 		auto recall = a->recall();
 
 		//l.log("recall(%d) = %f", a->id, recall);
 		acc(recall);
 		print_or_na<std::string>("dataset");
-		print_or_na<uint32_t>("random-seed");
-		std::cout << (a->id) << ", ";
-		std::cout << a->cls() << ", ";
+		//print_or_na<uint32_t>("random-seed");
+		std::cout << seed << ',';
+		std::cout << (a->id) << ',';
+		std::cout << a->cls() << ',';
 		// randomness type, or randomness seed
 		// --- experiment type
 		print_if("naive");
 		print_if("groups");
-		print_or_ignore<uint32_t>("slices");
+		print_if("blind");
+		print_or_ignore("slices");
 		print_if_not("private", "baseline");
 		// --- slices info
 		print_or_na<uint32_t>("slices");
@@ -194,9 +208,15 @@ int main(int argc, char *argv[]) {
 		print_or_na_or_either("naive", "groups", "concerned", concerned);
 		// --- privacy options
 		extern double epsilon;
-		std::cout << epsilon << ", ";
+		std::cout << epsilon << ',';
 		std::cout << recall << std::endl;
 	}
+	std::cout << std::flush;
+	if(gossple::out_redirected) {
+		gossple::out.flush();
+		gossple::out.close();
+	}
+	flock.unlock();
 
 	auto avg_recall = ba::sum_kahan(acc) / static_cast<double>(joined_peers.size());
 

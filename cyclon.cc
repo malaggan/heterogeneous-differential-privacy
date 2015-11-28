@@ -94,17 +94,17 @@ void user::cyclon_print_view() {
 	// cout << endl;
 
 	if(this->id == 1) {
-		ostringstream cout;
+		ostringstream out;
 		extern uint32_t current_cycle;
-		cout << 'R'
+		out << 'R'
 		     << setfill('0') << setw(2) << right << current_cycle;
 		for (auto neighbor : cyclon_view | ::helpers::map_ids)
 			if( cached_similarity(neighbor) > 0 )
-				cout << setfill(' ') << setw(4) << right << neighbor << ": "
+				out << setfill(' ') << setw(4) << right << neighbor << ": "
 				     << setfill(' ') << setw(10) << left << cached_similarity(neighbor);
-		cout << ends;
+		out << ends;
 		static logger l{"print_view"};
-		l.runlog(cout.str());
+		l.runlog(out.str());
 	}
 }
 

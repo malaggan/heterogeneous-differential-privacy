@@ -33,7 +33,7 @@ static auto read_group_ratios() {
 		c = vm[#c].as<double>(); \
 		assert(0.0 <= c and c <= 1.0); \
 		if(b + c > 1.0) { \
-			l.log("Groups total exceed 100%, ignoring this configuration"); \
+			l.log(std::string{"Groups total exceed 100%, ignoring this configuration"}); \
 			exit(0); \
 		} \
 		a = 1 - b - c; \
@@ -65,6 +65,14 @@ static user::privacy_class random_privacy_class() {
 static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 	// create a new user, only if he is not to be thrown away (naive).
 	// if so, ignore all his entries
+	if(vm["blind"].as<bool>()) {
+		assert(vm["private"].as<bool>());
+		assert(!vm["naive"].as<bool>());
+		assert(!vm["groups"].as<bool>());
+		assert(!vm.count("slices"));
+		return some(new user{id, joined_peers, user::privacy_class::BLIND});
+	}
+
 	if(vm["private"].as<bool>() and
 	   (vm["naive"].as<bool>() or vm["groups"].as<bool>())) {
 		auto cls = random_privacy_class();
@@ -82,7 +90,7 @@ static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 		return some(new user{id, joined_peers, cls});
 	}
 
-	// baseline or private--slices:
+	// baseline or slices:
 	if(vm["private"].as<bool>()) {
 		assert(vm.count("slices"));
 		return some(new user{id, joined_peers, user::privacy_class::SLICES});
