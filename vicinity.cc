@@ -21,7 +21,7 @@ void user::vicinity_receive_gossip (
 		.push_all(to_be_received.remove(id)));
 	// duplicates are removed, keeping oldest timestamp.
 
-	vicinity_print_view();
+	//vicinity_print_view();
 }
 
 void user::vicinity_do_gossip() {
@@ -55,4 +55,17 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, 
 		.clear_and_assign(
 			priority_queue<ventry, viewSize/2, semantic_comp>{vicinity_view,  this}
 			.push_all(cyclon_view)));
+}
+
+
+std::string user::cls() const {
+	switch(prv_cls) {
+	case privacy_class::CONCERNED:					 return "CONCERNED";
+	case privacy_class::NORMAL:							 return "NORMAL";
+	case privacy_class::NAIVE:               return "NAIVE";
+	case privacy_class::UNCONCERNED:				 return "UNCONCERNED";
+	case privacy_class::SLICES:              return "SLICES";
+	case privacy_class::BASELINE:            return "BASELINE";
+	default : assert(false);
+	}
 }

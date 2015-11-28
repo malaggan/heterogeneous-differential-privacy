@@ -1,3 +1,4 @@
+#pragma once
 #ifdef __has_include
 #    if __has_include(<filesystem>)
 #        include <filesystem>

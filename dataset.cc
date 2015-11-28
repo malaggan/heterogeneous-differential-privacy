@@ -3,6 +3,7 @@
 #include "dataset.hh"
 #include "abstract_user.hh"
 #include "random.hh"
+#include "log.hh"
 #include <boost/range/istream_range.hpp>
 #include <fstream>
 #include <iostream>
@@ -39,10 +40,10 @@ static auto read_group_ratios() {
 	return std::make_tuple(unconcerned, normal, concerned);
 }
 
+double unconcerned{}, normal{}, concerned{};
 static user::privacy_class random_privacy_class() {
 	// read class probabilities
 	static bool is_initialized = false;
-	static double unconcerned, normal, concerned;
 	if(!is_initialized) {
 		std::tie(unconcerned, normal, concerned) = read_group_ratios();
 		is_initialized = true;
@@ -71,7 +72,7 @@ static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 		// strictist privacy guarantee (weights should be fixed to 0.5
 		// in that case)
 		if(vm["naive"].as<bool>())
-			cls = user::privacy_class::NORMAL_HOMOGENEOUS;
+			cls = user::privacy_class::NAIVE;
 
 		return some(new user{id, joined_peers, cls});
 	}
@@ -98,35 +99,42 @@ user::set_t load_dataset()
 	user_id_t ignore_id = 0;
 	std::unordered_set<item_id_t> seen;
 	user::set_t joined_peers;
+	static logger l{"load_dataset"};
+	uint64_t j = 0;
+	for(auto &it : boost::istream_range<item>(std::cin)) {
+		//[&seen, &joined_peers, &current_id, &ignore_id, &j, &user_count]
+		//       (item const& it)
+		l.progress(j, user_count, (j%50) == 0);
 
-	for_each(boost::istream_range<item>(std::cin),
-	         [&seen, &joined_peers, &current_id, &ignore_id]
-	         (item const& it) {
-		         auto id = it.first; // starts from 1
-		         if(ignore_id == id)
-			         return;
-		         auto item = it.second;
+		auto id = it.first; // starts from 1
+		if(ignore_id == id)
+			continue;
+		auto item = it.second;
 
-		         if(id > current_id) {
-			         auto u = create_user(current_id++, joined_peers);
-			         if(u == none) {
-				         // skip all entries of this user
-				         ignore_id = id;
+		if(id > current_id) {
+			auto u = create_user(current_id++, joined_peers);
+			if(u == none) {
+				// skip all entries of this user
+				ignore_id = id;
 // note: `id' (the one read from the file) is no longer valid here. we depend on our incremental id counter. Important: by doing this, users with zero items are automatically not included, and this may cause two problems: 1) even in non-naive experiments there maybe a discrepency between the user id in the file and the user id in the program's memory, and 2) there maybe a discrepency between the declared number of users in the file and the actually loaded number.
-				         --current_id;
-				         return;
-			         }
+				--current_id;
+				continue;
+			} else { ++j; }
 
-			         joined_peers.insert(u.value());
-			         all_peers[current_id - 1] = u.value();
+			joined_peers.insert(u.value());
+			all_peers[current_id - 1] = u.value();
 
-		         }
-		         if(seen.count(item))
-			         used_more_than_once.insert(item);
-		         else
-			         seen.insert(item);
-		         all_peers[current_id - 1]->add_item(item);
-	         });
-	assert(user_count == joined_peers.size()); // if not, the reason maybe the note above ^
+		}
+		if(seen.count(item))
+			used_more_than_once.insert(item);
+		else
+			seen.insert(item);
+		all_peers[current_id - 1]->add_item(item);
+	}
+
+	if(!vm["naive"].as<bool>())
+		if(user_count != joined_peers.size()) // if not, the reason maybe the note above ^. However, we cannot verify this for naive expr.
+			l.log("Some users had empty profiles.");
+	l.log("Loading finished");
 	return joined_peers;
 }

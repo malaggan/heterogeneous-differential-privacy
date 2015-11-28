@@ -13,7 +13,7 @@ class user final {
 public:
 	enum class privacy_class : uint8_t {
 		CONCERNED = 0, NORMAL = 1, UNCONCERNED = 2,
-			NORMAL_HOMOGENEOUS = 3, SLICES = 4, BASELINE = 5 };
+			NAIVE /*NORMAL_HOMOGENEOUS*/ = 3, SLICES = 4, BASELINE = 5 };
 
 	user_id_t																 id;
 	privacy_class                            prv_cls;
@@ -64,6 +64,7 @@ public:
 	void													 vicinity_receive_gossip(view_t /*by value*/ to_be_received, view_t /*by value*/ was_sent);
 	void													 vicinity_print_view();
 	double											   recall() const;
+	std::string                    cls() const;
 
 	~user() {}
 };

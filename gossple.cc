@@ -17,31 +17,40 @@
 #include <fstream>
 #include <algorithm>
 #include <functional>
+#include <iterator>
+std::string HEADER{"dataset, seed, user-id, user-class, expr, slices, min, unconcerned, normal, concerned, epsilon, recall"};
 
-// these must be public so as to no be destructed (and hence, closed),
-// before the application termiantes.
 namespace gossple {
+	// these must be public so as to no be destructed (and hence, closed),
+	// before the application termiantes.
 	std::ofstream out, log;
 	std::ifstream in;
+	bool out_redirected = false, log_redirected = false, in_redirected = false;
 
 	void redirect(std::string option_name, std::ofstream &fstream, std::ostream &outstream) {
 		auto fname = vm[option_name].as<std::string>();
 		fs::path output{fname};
 		if(fs::exists(output))
 		{
-			if(vm["noclobber"].as<bool>()) {
-				std::ostringstream cout;
-				cout << "File \"" << fname << "\" already exists, but --noclobber has been set. "
-					"Cannot produce output. Quitting..." << std::ends;
-				logger{"redirect"}.log(cout.str());
-				exit(1);
-			}
 			if(vm["append"].as<bool>())
 				fstream = std::ofstream{fname, std::ios::app}; // append to file
 			else
+			{
+				if(!vm["overwrite"].as<bool>()) {
+					std::ostringstream cout;
+					cout << "File \"" << fname << "\" already exists, but --overwrite has not been set. "
+						"Cannot produce output. Quitting..." << std::ends;
+					logger{"redirect"}.log(cout.str());
+					exit(1);
+				}
+				if(!vm["header"].as<bool>() && std::addressof(fstream) == std::addressof(out))
+					fstream << HEADER << std::endl;
 				fstream = std::ofstream{fname, std::ios::trunc}; // overwrite file
+			}
 		} else {
-			fstream = std::ofstream{fname}; // overwrite file
+			fstream = std::ofstream{fname}; // create file
+			if(!vm["header"].as<bool>() && std::addressof(fstream) == std::addressof(out))
+				fstream << HEADER << std::endl;
 		}
 		assert(fstream);
 		outstream.rdbuf(fstream.rdbuf());
@@ -51,14 +60,55 @@ namespace gossple {
 all_t all_peers;
 namespace ba = boost::accumulators;
 
+template<typename T>
+void print_if_not(std::string const & name, T const & v) {
+	if(!vm[name].as<bool>())
+		std::cout << v << ", ";
+}
+
+void print_if(std::string const & name) {
+	if(vm[name].as<bool>())
+		std::cout << name << ", ";
+}
+
+template<typename T>
+void print_or_na_or_either(std::string const & expr1, std::string const & expr2, std::string const & name, T const & v) {
+	if(vm.count(name) or vm[expr1].as<bool>() or vm[expr2].as<bool>())
+		std::cout << v << ", ";
+	else
+		std::cout << "NA" << ", ";
+}
+
+template<typename T>
+void print_or_na(std::string const & name, T const & v) {
+	if(vm.count(name))
+		std::cout << v << ", ";
+	else
+		std::cout << "NA" << ", ";
+}
+
+template<typename T>
+void print_or_na(std::string const & name) {
+	if(vm.count(name))
+		std::cout << vm[name].as<T>() << ", ";
+	else
+		std::cout << "NA" << ", ";
+}
+
+template<typename T>
+void print_or_ignore(std::string const & name) {
+	if(vm.count(name))
+		std::cout << vm[name].as<T>() << ", ";
+}
+
 uint32_t current_cycle = 0;
 int main(int argc, char *argv[]) {
 	parse_args(argc, argv);
 
-	if(vm.count("output")) gossple::redirect("output", gossple::out, std::cout);
-	if(vm.count("log"   )) gossple::redirect("log"   , gossple::log, std::clog);
+	if(vm.count("output")) { gossple::redirect("output", gossple::out, std::cout); gossple::out_redirected = true; }
+	if(vm.count("log"   )) { gossple::redirect("log"   , gossple::log, std::clog); gossple::log_redirected = true; }
 
-	logger l{"main"};
+	static logger l{"main"};
 
 	if(vm["private"].as<bool>())
 	{
@@ -89,6 +139,7 @@ int main(int argc, char *argv[]) {
 			}
 			gossple::in = std::ifstream{fname};
 			std::cin.rdbuf(gossple::in.rdbuf());
+			gossple::in_redirected = true;
 
 			l.log("Reading input dataset from \"%s\"", fname.c_str());
 		} else
@@ -98,22 +149,57 @@ int main(int argc, char *argv[]) {
 	auto joined_peers = load_dataset();
 
 	l.log("Simulating cycles");
+
 	for(auto i : boost::counting_range(0u, cycles))
 	{
 		current_cycle++;
-		boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));
+
+		//boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));
+		uint32_t j = 0;
+		for(auto &v : joined_peers) {
+			v->vicinity_do_gossip();
+			++j;
+			l.progress(current_cycle, cycles, (j%100) == 0);
+		}
 	}
 	l.log("All cycles finished");
 
-	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
+	//ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
 
+	if(vm["header"].as<bool>())
+		std::cout << HEADER << std::endl;
 	for(auto a : joined_peers)
 	{
 		auto recall = a->recall();
-		l.log("recall(%d) = %f", a->id, recall);
-		acc(recall);
+
+		//l.log("recall(%d) = %f", a->id, recall);
+		//acc(recall);
+		print_or_na<std::string>("dataset");
+		print_or_na<uint32_t>("random-seed");
+		std::cout << (a->id) << ", ";
+		std::cout << a->cls() << ", ";
+		// randomness type, or randomness seed
+		// --- experiment type
+		print_if("naive");
+		print_if("groups");
+		print_or_ignore<uint32_t>("slices");
+		print_if_not("private", "baseline");
+		// --- slices info
+		print_or_na<uint32_t>("slices");
+		print_or_na<double>("min");
+		// --- groups info
+		extern double unconcerned, normal, concerned;
+		print_or_na_or_either("naive", "groups", "unconcerned", unconcerned);
+		print_or_na_or_either("naive", "groups", "normal", normal);
+		print_or_na_or_either("naive", "groups", "concerned", concerned);
+		// --- privacy options
+		extern double epsilon;
+		std::cout << epsilon << ", ";
+		std::cout << recall << std::endl;
 	}
 
-	std::cout << (ba::sum_kahan(acc) / static_cast<double>(joined_peers.size())) << std::endl ;
+	//auto avg_recall = ba::sum_kahan(acc) / static_cast<double>(joined_peers.size());
+
+	//std::cout << avg_recall << std::endl ;
 	return 0;
 }

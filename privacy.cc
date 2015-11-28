@@ -35,7 +35,7 @@ pc_limits(privacy_class pc) {
 	switch(pc) {
 	case privacy_class::CONCERNED:					 return std::make_pair(0.0, 1.0);
 	case privacy_class::NORMAL:							 return std::make_pair(0.5, 1.0);
-	case privacy_class::NORMAL_HOMOGENEOUS:  return std::make_pair(0.5, 0.5);
+	case privacy_class::NAIVE:               return std::make_pair(0.5, 0.5);
 	case privacy_class::UNCONCERNED:				 return std::make_pair(0.9, 1.0);
 	case privacy_class::SLICES: {
 		assert(vm.count("min"));

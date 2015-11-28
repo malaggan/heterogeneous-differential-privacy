@@ -10,7 +10,7 @@ void parse_args(int ac, char *av[]) {
 
 	po::options_description help("Help options");
 	help.add_options()
-    ("help,h", "produce help message")
+    ("help", "produce help message")
 		;
 	po::options_description general("General options");
 	general.add_options()
@@ -20,12 +20,13 @@ void parse_args(int ac, char *av[]) {
 		("epsilon,e", po::value<double>(&epsilon), "the differential privacy parameter")
 		("secure,h", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov") // TODO
 		;
-	po::options_description output("Output options"); // TODO
+	po::options_description output("Output options");
 	output.add_options()
+		("header,h", po::bool_switch()->default_value(false), "print header line. if a file is new, header will be added automatically")
 		("output,o", po::value<std::string>(), "file to write results to. If not specified, results are written to standard output")
 		("append,a", po::bool_switch()->default_value(false), "append to the specified output file. If not present, output file is overwritten")
 		("log", po::value<std::string>(), "file to write log to. If not specified, log messages are written to standard error")
-		("noclobber", po::bool_switch()->default_value(false), "abort if output file or log file are present, do not override them. This option is ignored if stdout and stderr are used")
+		("overwrite", po::bool_switch()->default_value(false), "overwrite output file or log file if present. This option is ignored if stdout and stderr are used")
 		;
 	po::options_description groups("Groups options");
 	groups.add_options()
@@ -35,7 +36,7 @@ void parse_args(int ac, char *av[]) {
 		("normal", po::value<double>(), "ratio of the normal group (0 - 1)")
 		("concerned", po::value<double>(), "ratio of the concerned group (0 - 1)")
 		;
-	po::options_description slices("slices options");
+	po::options_description slices("Slices options");
 	slices.add_options()
 		("slices,s", po::value<uint32_t>(), "the number of slices")
 		("min,u", po::value<double>(), "min epsilon for slices (0 - 1)")

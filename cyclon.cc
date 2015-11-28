@@ -166,7 +166,7 @@ void user::cyclon_receive_gossip(
 			++a;
 	}
 
-	user::cyclon_print_view();
+	// user::cyclon_print_view();
 }
 
 void user::cyclon_do_gossip() {

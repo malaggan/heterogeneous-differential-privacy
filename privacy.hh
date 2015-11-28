@@ -1,3 +1,4 @@
+#pragma once
 #include "conf.hh"
 #include "ventry.hh"
 #include "abstract_user.hh"
