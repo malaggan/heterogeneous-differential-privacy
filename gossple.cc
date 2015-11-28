@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
 	}
 	l.log("All cycles finished");
 
-	//ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
+	ba::accumulator_set<double, ba::features<ba::tag::sum_kahan>> acc;
 
 	if(vm["header"].as<bool>())
 		std::cout << HEADER << std::endl;
@@ -173,7 +173,7 @@ int main(int argc, char *argv[]) {
 		auto recall = a->recall();
 
 		//l.log("recall(%d) = %f", a->id, recall);
-		//acc(recall);
+		acc(recall);
 		print_or_na<std::string>("dataset");
 		print_or_na<uint32_t>("random-seed");
 		std::cout << (a->id) << ", ";
@@ -198,8 +198,8 @@ int main(int argc, char *argv[]) {
 		std::cout << recall << std::endl;
 	}
 
-	//auto avg_recall = ba::sum_kahan(acc) / static_cast<double>(joined_peers.size());
+	auto avg_recall = ba::sum_kahan(acc) / static_cast<double>(joined_peers.size());
 
-	//std::cout << avg_recall << std::endl ;
+	l.log("Average recall: %f", avg_recall);
 	return 0;
 }
