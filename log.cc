@@ -31,8 +31,10 @@ static void vprint(std::string const & component, std::string const & msg) {
 	// TODO use ncurses, also to detect color support
 
 	if(!gossple::log_redirected) __detail::produce(log_type::LOG, "\033[37;1m[\033[32;1m");
+	else __detail::produce(log_type::LOG, "[");
 	__detail::produce(log_type::LOG, component);
 	if(!gossple::log_redirected) __detail::produce(log_type::LOG, "\033[37;1m]\033[0m: ");
+	else __detail::produce(log_type::LOG, "]: ");
 	__detail::produce(log_type::LOG, msg);
 	if(use_arabic_locale) __detail::produce(log_type::LOG, "\xE2\x80\x8E"); // LTR character
 }
@@ -118,10 +120,11 @@ void logtime() {
 	if(use_arabic_locale) s.imbue(std::locale("ar_EG.utf8"));
 	else s.imbue(std::locale("en_US.utf8"));
 	if(use_arabic_locale) s << "\xE2\x80\x8F"; // RTL mark
-	s
-		<< "\033[37;1m[\033[35;1m"
-		<< std::put_time(&tm, "%c")
-		<< "\033[37;1m]\033[0m: "
-		<< ' '; // %Z for timezone.
+	if(!gossple::log_redirected) s << "\033[37;1m[\033[35;1m";
+	else s << "[";
+	s	<< std::put_time(&tm, "%c");
+	if(!gossple::log_redirected) s	<< "\033[37;1m]\033[0m: ";
+	else s << "]: ";
+	s	<< ' '; // %Z for timezone.
 	__detail::produce(log_type::LOG, s.str());
 }

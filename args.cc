@@ -18,7 +18,7 @@ void parse_args(int ac, char *av[]) {
     ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
 		("private,p", po::bool_switch()->default_value(false), "enable differential privacy (via the Laplacian mechanism)")
 		("epsilon,e", po::value<double>(&epsilon), "the differential privacy parameter")
-		("secure,h", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov") // TODO
+		("secure", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov") // TODO
 		;
 	po::options_description output("Output options");
 	output.add_options()

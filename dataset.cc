@@ -24,6 +24,7 @@ static auto read_group_ratios() {
 	       ( vm.count("unconcerned") and !vm.count("normal") and  vm.count("concerned")) or
 	       ( vm.count("unconcerned") and  vm.count("normal") and !vm.count("concerned")));
 	// read the other two and infer this
+		static logger l{"read_group_ratios"};
 #define read2(a,b,c) if(!vm.count(#a)) { \
 		assert(vm.count(#b)); \
 		b = vm[#b].as<double>(); \
@@ -31,6 +32,10 @@ static auto read_group_ratios() {
 		assert(vm.count(#c)); \
 		c = vm[#c].as<double>(); \
 		assert(0.0 <= c and c <= 1.0); \
+		if(b + c > 1.0) { \
+			l.log("Groups total exceed 100%, ignoring this configuration"); \
+			exit(0); \
+		} \
 		a = 1 - b - c; \
 	}
 	read2(concerned, normal, unconcerned);

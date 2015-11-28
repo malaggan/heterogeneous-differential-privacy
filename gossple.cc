@@ -200,6 +200,6 @@ int main(int argc, char *argv[]) {
 
 	auto avg_recall = ba::sum_kahan(acc) / static_cast<double>(joined_peers.size());
 
-	l.log("Average recall: %f", avg_recall);
+	l.log("Recall mean: %f", avg_recall);
 	return 0;
 }
