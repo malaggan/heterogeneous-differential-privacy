@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 set -e # exit immediately on error
-SHA1="fc264d69b38f73be12058a6ee17e77a6367b0b8b"
-for DATASET in survey.txt digg.txt delicious.txt
+SHA1="d6c386d789d211bae6993a0a36ffe8774568f53c"
+for DATASET in survey.txt digg.txt delicious.txt # epinions-small.txt
 do
-		./gossple ${DATASET} --log LOG -o results.csv -a & # baseline
-		./gossple ${DATASET} --log LOG -o results.csv -apb & # blind
-		wait
-		for r in {1..1000}
+		./gossple ${DATASET} --log LOG -o results.csv -a # baseline
+		./gossple ${DATASET} --log LOG -o results.csv -apb # blind
+		for r in {1..10}
 		do
 				for e in 3 2 1 0.5 0.1
 				do

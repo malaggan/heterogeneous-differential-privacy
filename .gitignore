@@ -34,3 +34,12 @@
 gossple
 TAGS
 *~
+/*.csv
+baseline
+blind
+groups
+naive
+slices
+target
+/LOG
+/.lock
