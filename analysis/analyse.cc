@@ -1,3 +1,5 @@
+#include "conf.hh"
+#include "stat.hh"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -7,92 +9,28 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
-#include <boost/math/distributions/students_t.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/sum_kahan.hpp>
-#include <boost/accumulators/statistics/count.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/statistics/sum_kahan.hpp>
-#include <boost/accumulators/accumulators.hpp>
 #include <boost/functional/hash.hpp>
 
-// Count is there to report in the paper over how many runs i took the
-// average, and also to use in the MeanCI computation
-namespace ba = boost::accumulators;
-namespace bm = boost::math;
-using acc =
-	ba::accumulator_set<double,
-	                    ba::features<ba::tag::sum_kahan,
-	                                 ba::tag::count,
-	                                 ba::stats<ba::tag::mean,
-	                                           ba::tag::variance>>>;
 
-auto mean_range(acc &acc) {
-	auto count = ba::count(acc);
-	bm::students_t dist(count - 1);
-	double T = bm::quantile(bm::complement(dist, 1e-10/2));
-	double w = T * std::sqrt(ba::variance(acc)) / std::sqrt(static_cast<double>(count));
-	return std::make_pair(ba::mean(acc),  w);
-}
-enum class dataset_t { survey = 1, digg = 2, delicious = 3};
-enum class min_t { zero = 1, half = 2, nine = 3 };
 struct key {
+	dataset_t	 dataset;
 	uint32_t	 slices;
-  dataset_t	 dataset;
 	min_t			 min;
 
 	explicit key(dataset_t dataset, uint32_t slices, min_t min) :
-		slices{slices}, dataset{dataset}, min{min} {}
+		dataset{dataset}, slices{slices}, min{min} {}
 
 	explicit key(std::string dataset, uint32_t slices, double min) :
-		slices{slices} {
-		if(dataset == "survey.txt") this->dataset = dataset_t::survey;
-		else if(dataset == "digg.txt") this->dataset = dataset_t::digg;
-		else if(dataset == "delicious.txt") this->dataset = dataset_t::delicious;
-		else assert(false);
-		if(min < 0.3) this->min = min_t::zero;
-		else if(min < 0.7) this->min = min_t::half;
-		else this->min = min_t::nine;
-	}
+		key{to_dataset(dataset), slices, to_min(min)} {}
 
 	explicit key(std::vector<std::string> const &toks) :
-		key{toks[0],boost::lexical_cast<uint32_t>(toks[1]),boost::lexical_cast<double>(toks[2])}
-		{}
+		key{toks[0],boost::lexical_cast<uint32_t>(toks[1]),boost::lexical_cast<double>(toks[2])} {}
 
   bool operator==(key const &other) const {
 	  return dataset	== other.dataset
 		  and slices		== other.slices
 		  and min				== other.min; }
 };
-
-std::ostream& operator<<(std::ostream &os, const dataset_t &d)
-{
-	switch(d) {
-	case dataset_t::survey : os << "survey"; break;
-	case dataset_t::digg : os << "digg"; break;
-	case dataset_t::delicious : os << "delicious"; break;
-	default : assert(false);
-	}
-	return os;
-}
-
-std::ostream& operator<<(std::ostream &os, const min_t &d)
-{
-	switch(d) {
-	case min_t::zero : os << "0"; break;
-	case min_t::half : os << "0.5"; break;
-	case min_t::nine : os << "0.9"; break;
-	default : assert(false);
-	}
-	return os;
-}
-
-std::ostream& operator<<(std::ostream &os, const key &k)
-{
-	os << "[" << k.dataset << ", " << k.slices << ", " << k.min << "]";
-	return os;
-}
 
 namespace std {
   template <>
