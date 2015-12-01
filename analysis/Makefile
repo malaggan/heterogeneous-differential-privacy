@@ -1,18 +1,17 @@
 default: all
 .PHONY: all TAGS
-CPPFLAGS :=
-CXX := g++
-CXXFLAGS:= -std=c++14
-LDFLAGS := -lpthread -lrt -luuid -ldl
+CPPFLAGS	:=
+CXX				:= g++
+CXXFLAGS	:= -std=c++14
+LDFLAGS		:= -lpthread -lrt -luuid -ldl
+WARN			:= -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat
+OPT				:= -O3
+DEBUG			:= -g0 #gdb3 -D_GLIBCXX_DEBUG
+BIN				:= analyse
+src				 =$(wildcard *.cc)
+obj				 =$(patsubst %.cc,%.o,$(src))
 
-WARN := -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat
-OPT  := -Og
-DEBUG:= #-g0 #gdb3 -D_GLIBCXX_DEBUG
 
-src=$(wildcard *.cc)
-obj=$(patsubst %.cc,%.o,$(src))
-
-BIN := analyse
 
 all: $(BIN) TAGS
 
