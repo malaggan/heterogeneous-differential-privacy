@@ -23,7 +23,7 @@ add_item(item_id_t i) {
 }
 
 void user::
-generate_weights(std::uniform_real_distribution<double> pc, uint32_t slices) {
+generate_weights(double min, double max, uint32_t slices) {
 	assert(privacy_weights.empty());
 	std::uniform_int_distribution<uint8_t> uniform{0,2};
 	auto choice = uniform(rng);
@@ -56,9 +56,13 @@ generate_weights(std::uniform_real_distribution<double> pc, uint32_t slices) {
 		case privacy_class::NAIVE:
 			privacy_weights[item] = 0.5;
 			break;
-		case privacy_class::SLICES:
-			privacy_weights[item] = static_cast<uint64_t>(std::ceil(pc(rng)* slices)) / static_cast<double>(slices);
+		case privacy_class::SLICES: {
+			assert(slices > 1);
+			double delta{(max - min)/(slices - 1)};
+			std::uniform_int_distribution<uint8_t> deltas{0, slices - 1};
+			privacy_weights[item] = min + deltas(rng) * delta;
 			break;
+		}
 		default: assert(false);
 		}
 	}
@@ -90,18 +94,16 @@ weights_of(std::vector<item_id_t> const & subset) {
 		return std::vector<double>{};
 
 	if(privacy_weights.empty()) { // if not cached, need to generate
-		double min, max;
 		// naive, groups, or slices, are handled in dataset.cc and prv_cls.
 		uint32_t slices = 1;
 		if(vm.count("slices"))
 			slices = vm["slices"].as<uint32_t>();
 
+		double min, max;
 		std::tie(min, max) = pc_limits(prv_cls);
 		assert(0.0 <= min && min <= 1.0);
 		assert(0.0 <= max && max <= 1.0);
-		generate_weights(
-			std::uniform_real_distribution<double>{min, max},
-			slices);
+		generate_weights(min, max, slices);
 	}
 
 	// return only the weigts for items in the `subset'

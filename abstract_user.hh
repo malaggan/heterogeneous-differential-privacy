@@ -44,7 +44,7 @@ public:
 	// privacy stuff
 	static std::pair<double, double>     pc_limits(privacy_class);
 	void									               add_item(item_id_t);
-	void									               generate_weights(std::uniform_real_distribution<double>, uint32_t slices);
+	void									               generate_weights(double min, double max, uint32_t slices);
 	std::vector<double>	                 weights_of(std::vector<item_id_t> const & subset);
 	double							                 cached_similarity(user_id_t other);
 
