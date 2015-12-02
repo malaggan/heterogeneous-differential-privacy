@@ -12,6 +12,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/format.hpp>
 #include <tuple>
+#include <iterator>
 
 namespace std {
 	template<typename... T>
@@ -35,69 +36,84 @@ namespace std {
 
 void output_slices_plot(std::unordered_map<std::tuple<dataset_t, uint32_t, min_t>, acc> const &slices_expr_values) {
 	using namespace std;
-	cout << "\\begin{figure}\n  \\centering\n  \\begin{tikzpicture}\n%mark options={style={scale=2}}\n%line width=1pt\n    \\begin{groupplot}[ %\n      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%\n      footnotesize, width=4.5cm, height=5cm, xlabel=$n$, ylabel=Recall, xtick={1,2,3,4,5,6,7,8,9,10}]%)\n";
+	ifstream tin{"steps.tex.in"};
+	string ts{istreambuf_iterator<char>(tin), istreambuf_iterator<char>()};
+	boost::format tf{ts};
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
-		cout << "\\nextgroupplot % " << dataset << endl;
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			cout << "         \\addplot[mark=";
-			switch(min) {
-			case min_t::zero : cout << "o"; break;
-			case min_t::half : cout << "square"; break;
-			case min_t::nine : cout << "diamond"; break;
-			default : assert(false);
-			}
-			cout << ",error bars/.cd,y dir=both, y explicit] plot coordinates { ";
 			for(auto & slices : boost::counting_range(1u, 11u)) {
 				auto k = make_tuple(dataset, slices, min);
 				assert(slices_expr_values.count(k));
 				auto & acc  = slices_expr_values.at(k);
 				double mean, ci; tie(mean,ci) = mean_range(acc);
-				cout << "(" << slices <<"," << mean << ") +- (0,{" << ci << "}) ";
+				tf % mean % ci;
 			}
-			cout << " };%			" << endl;
 		}
 	}
-	cout << "    \\end{groupplot}\n    \\draw (my plots0 c2r1.south)+(0pt,-50pt) node {\\ref{groups_legend1}};\n    \\draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};\n    \\draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};\n    \\draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};\n  \\end{tikzpicture}\n\n  \\caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, plotted against the number of slices.}\n  \\label{fig:het_priv_steps}\n\\end{figure} % o: min=0, square: min=0.5, diamond: min=0.9\n";
-
+	ofstream tout{"steps.tex"};
+	tout << tf;
 }
 
 void output_min_plot(std::unordered_map<std::tuple<dataset_t, min_t>, acc> const &min_expr_values,
                      std::unordered_map<dataset_t, acc> const &baseline,
                      std::unordered_map<dataset_t, acc> const &random) {
 	using namespace std;
-	cout << "\\begin{figure}\n  \\centering\n  \\begin{tikzpicture}\n    \\begin{groupplot}[ %\n      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%\nfootnotesize, width=4.5cm, height=4cm, xlabel=$\\underline{u}$, ylabel=Recall, xmin=0,xmax=1, xtick={0,0.5,.9},xmajorgrids=true]%" << endl;
-
+	ifstream tin{"min-plot.tex.in"};
+	string ts{istreambuf_iterator<char>(tin), istreambuf_iterator<char>()};
+	boost::format tf{ts};
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
-		cout << "\\nextgroupplot % " << dataset << endl;
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			cout << "         \\addplot[";
-			switch(min) {
-			case min_t::zero : cout << "mark=o,error bars/.cd,y dir=both, y explicit"; break;
-			case min_t::half : cout << "solid"; break;
-			case min_t::nine : cout << "mark=square"; break;
-			default : assert(false);
-			}
-			cout << "] plot coordinates { ";
-
 			auto k = make_tuple(dataset, min);
 			assert(min_expr_values.count(k));
 			auto & acc  = min_expr_values.at(k);
 			double mean, ci; tie(mean,ci) = mean_range(acc);
-			cout << "(" << min <<"," << mean << ") +- (0,{" << ci << "}) ";
-
-			cout << " };%			" << endl;
+			tf % mean % ci;
 		}
+		assert(baseline.count(dataset));
+		assert(random.count(dataset));
+		double baseline_mean; tie(baseline_mean,ignore) = mean_range(baseline.at(dataset));
+		double random_mean; tie(random_mean,ignore) = mean_range(random.at(dataset));
+		tf % baseline_mean % random_mean;
 	}
-
-	cout << "    \\end{groupplot}\n    \\draw (my plots0 c2r1.south)+(0pt,-50pt) node {\\ref{groups_legend0}};\n    \\draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};\n    \\draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};\n    \\draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};\n  \\end{tikzpicture}\n\n  \\caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, averaged over the number of slices. \\emph{Baseline} refers to the recall obtained when the system run with no privacy guarantees using the plain version of the clustering algorithm, while \\emph{Random} refers to a random clustering process in which peers choose their neighbors totally at random.}\n  \\label{fig:het_priv_one_group}\n\\end{figure}\n";
-
+	ofstream tout{"min-plot.tex"};
+	tout << tf;
 }
 
-int main()
-{
+void output_groups_plot(std::unordered_map<std::tuple<dataset_t, norm_t, conc_t, peer_type>, acc> const &groups_expr_values) {
 	using namespace std;
-	//unordered_map<tuple<dataset_t, uint32_t, min_t>, acc> slices_expr_values;
+	ifstream tin{"groups.tex.in"};
+	string ts{istreambuf_iterator<char>(tin), istreambuf_iterator<char>()};
+	boost::format tf{ts};
+	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
+		for(auto & norm : vector<norm_t>{norm_t::_10, norm_t::_20, norm_t::_60, norm_t::_70}) {
+			for(auto & ptype : vector<peer_type>{peer_type::concerned, peer_type::normal, peer_type::unconcerned}) {
+				vector<conc_t> concs;
+				switch(norm) {
+				case(norm_t::_10): concs = vector<conc_t>{conc_t::_80, conc_t::_70, conc_t::_30, conc_t::_20}; break;
+				case(norm_t::_20): concs = vector<conc_t>{conc_t::_70, conc_t::_60, conc_t::_20}; break;
+				case(norm_t::_60): concs = vector<conc_t>{conc_t::_30, conc_t::_20}; break;
+				case(norm_t::_70): concs = vector<conc_t>{conc_t::_20}; break;
+				default: assert(false);
+				}
+				for(auto & conc : concs) {
+					auto k = make_tuple(dataset, norm, conc, ptype);
+					assert(groups_expr_values.count(k));
+					auto & acc  = groups_expr_values.at(k);
+					double mean; tie(mean,ignore) = mean_range(acc);
+					tf % mean ;
+				}
+			}
+		}
+	}
+	ofstream tout{"groups.tex"};
+	tout << tf;
+}
+
+int main() {
+	using namespace std;
+	unordered_map<tuple<dataset_t, uint32_t, min_t>, acc> slices_expr_values;
 	unordered_map<tuple<dataset_t, min_t>, acc> min_expr_values;
+	unordered_map<tuple<dataset_t, norm_t, conc_t, peer_type>, acc> groups_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
 	auto comma = boost::is_any_of(",");
 	ifstream is{"/home/malaggan/gossple/results.csv"};
@@ -120,14 +136,22 @@ int main()
 		auto expr     = to_expr(toks[4]);
 		auto recall		= boost::lexical_cast<double>(toks[11]);
 		switch(expr) {
-		case expr_t::baseline: baseline[dataset](recall); break;
-		case expr_t::blind: random[dataset](recall); break;
+		// case expr_t::baseline: baseline[dataset](recall); break;
+		// case expr_t::blind: random[dataset](recall); break;
+		case expr_t::groups: {
+			auto norm_ratio = to_norm(boost::lexical_cast<double>(toks[8]));
+			auto conc_ratio = to_conc(boost::lexical_cast<double>(toks[9]));
+			auto ptype = to_peer_type(toks[3]);
+			auto & acc = groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)];
+			acc(recall);
+		}
+			break;
 		case expr_t::slices: {
-			// auto slices		= boost::lexical_cast<uint32_t>(toks[5]);
+			auto slices		= boost::lexical_cast<uint32_t>(toks[5]);
 			auto min			= to_min(boost::lexical_cast<double>(toks[6]));
 
-			// auto & acc1 = slices_expr_values[make_tuple(dataset,slices,min)];
-			// acc1(recall);
+			auto & acc1 = slices_expr_values[make_tuple(dataset,slices,min)];
+			acc1(recall);
 			auto & acc2 = min_expr_values[make_tuple(dataset,min)];
 			acc2(recall);
 			break;
@@ -135,8 +159,8 @@ int main()
 		default: break;
 		}
 	}
-	//output_slices_plot(slices_expr_values);
-	output_min_plot(min_expr_values, baseline, random);
-
+	// output_slices_plot(slices_expr_values);
+	// output_min_plot(min_expr_values, baseline, random);
+	output_groups_plot(groups_expr_values);
 	return 0;
 }

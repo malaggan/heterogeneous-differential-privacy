@@ -1,0 +1,80 @@
+\begin{figure}
+  \centering
+%% survey -> digg -> delicious
+  \begin{tikzpicture}
+    %% legend={manc, norm, crls}
+    \begin{groupplot}[%%
+      group style={ group name=my plots, group size=4 by 3, x descriptions at=edge bottom, horizontal
+        sep=0.1cm, vertical sep=0.1cm, yticklabels at=edge left, y descriptions at=edge left},%%
+      footnotesize, width=4.5cm, height=4.5cm, xlabel={\scriptsize\textsc{Fundamentalists}}, ylabel=Recall, xmin=0,xmax=1,
+xtick={0.2,0.3,0.6,0.7,0.8},xticklabels={$\frac{2}{10}$,$\frac{3}{10}$,$\frac{6}{10}$,$\frac{7}{10}$,$\frac{8}{10}$}
+, xmajorgrids=true]%%
+      %% fundamentalists -> pragmatists -> unconcerned. In all cases the x coordinate is parandoid
+      \nextgroupplot[ymax=0.98,ymin=0.9]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.8,%1%) (0.7,%2%) (0.3,%3%) (0.2,%4%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.8,%5%) (0.7,%6%) (0.3,%7%) (0.2,%8%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.8,%9%) (0.7,%10%) (0.3,%11%) (0.2,%12%) }; %%
+      \nextgroupplot[ymax=0.98,ymin=0.9]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.7,%13%) (0.6,%14%) (0.2,%15%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.7,%16%) (0.6,%17%) (0.2,%18%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.7,%19%) (0.6,%20%) (0.2,%21%) }; %%
+      \nextgroupplot[ymax=0.98,ymin=0.9]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.3,%22%) (0.2,%23%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.3,%24%) (0.2,%25%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.3,%26%) (0.2,%27%) }; %%
+      \nextgroupplot[ymax=0.98,ymin=0.9]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.2,%28%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.2,%29%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.2,%30%) }; %%
+%%%%%%%%%%%%%% DIGG
+      %% fundamentalists -> pragmatists -> unconcerned. In all cases the x coordinate is parandoid
+      \nextgroupplot[ymax=1,ymin=0.923]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.8,%31%) (0.7,%32%) (0.3,%33%) (0.2,%34%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.8,%35%) (0.7,%36%) (0.3,%37%) (0.2,%38%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.8,%39%) (0.7,%40%) (0.3,%41%) (0.2,%42%) }; %%
+      \nextgroupplot[ymax=1,ymin=0.923]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.7,%43%) (0.6,%44%) (0.2,%45%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.7,%46%) (0.6,%47%) (0.2,%48%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.7,%49%) (0.6,%50%) (0.2,%51%) }; %%
+      \nextgroupplot[ymax=1,ymin=0.923]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.3,%52%) (0.2,%53%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.3,%54%) (0.2,%55%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.3,%56%) (0.2,%57%) }; %%
+      \nextgroupplot[ymax=1,ymin=0.923]
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.2,%58%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.2,%59%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.2,%60%) }; %%
+%%%%%%%%%%%% DELICIOUS
+      %% fundamentalists -> pragmatists -> unconcerned. In all cases the x coordinate is parandoid
+      \nextgroupplot[ymax=0.23,ymin=0.1] %% norm = 0.1
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.8,%61%) (0.7,%62%) (0.3,%63%) (0.2,%64%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.8,%65%) (0.7,%66%) (0.3,%67%) (0.2,%68%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.8,%69%) (0.7,%70%) (0.3,%71%) (0.2,%72%) }; %%
+      \nextgroupplot %% norm = 0.2
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.7,%73%) (0.6,%74%) (0.2,%75%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.7,%76%) (0.6,%77%) (0.2,%78%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.7,%79%) (0.6,%80%) (0.2,%81%) }; %%
+      \nextgroupplot %% norm = 0.6
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.3,%82%) (0.2,%83%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.3,%84%) (0.2,%85%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.3,%86%) (0.2,%87%) }; %%
+      \nextgroupplot[legend columns=1, legend entries={\textsc{Fundamentalists};,\textsc{Pragmatists};,\textsc{Unconcerned}}, legend to name=groups_legend3] %% norm = 0.7
+      \addplot[mark=o,line width=1pt] plot coordinates{ (0.2,%88%) }; %%
+      \addplot[mark=square,line width=1pt] plot coordinates{ (0.2,%89%) }; %%
+      \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.2,%90%) }; %%
+    \end{groupplot}
+
+    \draw (my plots c1r1.west)+(-50pt,0pt) node[rotate=90] {Survey};
+    \draw (my plots c1r2.west)+(-50pt,0pt) node[rotate=90] {Digg};
+    \draw (my plots c1r3.west)+(-50pt,0pt) node[rotate=90] {Delicious};
+
+    \draw (my plots c1r1.north)+(0,10pt) node {\scriptsize\textsc{Pragmatists}$\;=10\%%$};
+    \draw (my plots c2r1.north)+(0,10pt) node {\scriptsize\textsc{Pragmatists}$\;=20\%%$};
+    \draw (my plots c3r1.north)+(0,10pt) node {\scriptsize\textsc{Pragmatists}$\;=60\%%$};
+    \draw (my plots c4r1.north)+(0,10pt) node {\scriptsize\textsc{Pragmatists}$\;=70\%%$};
+
+  \end{tikzpicture}
+\ref{groups_legend3}
+  \caption{Results obtained for the Delicious, Digg and survey datasets. The heterogeneous differential privacy has been computed for $3$ groups with different privacy attitudes. For a particular figure and a particular $x$ tick, the percentage of \textsc{Unconcerned} group is fully determined as $(1-$ \textsc{Pragmatists} $-$ $ x $).}
+  \label{fig:het_priv_3_groups}
+\end{figure}

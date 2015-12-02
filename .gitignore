@@ -43,3 +43,7 @@ slices
 target
 /LOG
 /.lock
+/analysis/steps.tex
+/analysis/min-plot.tex
+/analysis/groups.tex
+/analysis/analyse

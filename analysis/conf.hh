@@ -4,7 +4,8 @@
 #include <cassert>
 #include <iostream>
 
-enum class dataset_t { survey = 1, digg = 2, delicious = 3};
+//------------------------------------------------------------
+enum class dataset_t { survey = 1, digg, delicious };
 dataset_t to_dataset(std::string str) {
 	if(str == "survey.txt") return dataset_t::survey;
 	else if(str == "digg.txt") return dataset_t::digg;
@@ -22,11 +23,13 @@ std::ostream& operator<<(std::ostream &os, const dataset_t &d)
 	return os;
 }
 
-enum class min_t { zero = 1, half = 2, nine = 3 };
+//------------------------------------------------------------
+enum class min_t { zero = 1, half, nine };
 min_t to_min(double d) {
 	if(d < 0.3) return min_t::zero;
 	else if(d < 0.7) return min_t::half;
-	else return min_t::nine;
+	else if(d < 1.0) return min_t::nine;
+	else assert(false);
 }
 std::ostream& operator<<(std::ostream &os, const min_t &d)
 {
@@ -39,6 +42,7 @@ std::ostream& operator<<(std::ostream &os, const min_t &d)
 	return os;
 }
 
+//------------------------------------------------------------
 enum class expr_t { baseline = 1, blind, slices, groups, naive };
 expr_t to_expr(std::string const &str) {
 	if(str == "baseline") return expr_t::baseline;
@@ -46,5 +50,32 @@ expr_t to_expr(std::string const &str) {
 	else if(str == "slices") return expr_t::slices;
 	else if(str == "groups") return expr_t::groups;
 	else if(str == "naive") return expr_t::naive;
+	else assert(false);
+}
+//------------------------------------------------------------
+enum class peer_type { unconcerned = 1, normal, concerned };
+peer_type to_peer_type(std::string const &str) {
+	if(str == "UNCONCERNED") return peer_type::unconcerned;
+	else if(str == "NORMAL") return peer_type::normal;
+	else if(str == "CONCERNED") return peer_type::concerned;
+	else assert(false);
+}
+//------------------------------------------------------------
+enum class norm_t { _10 = 1, _20, _60, _70 };
+norm_t to_norm(double d) {
+	if(d < 0.15) return norm_t::_10;
+	else if(d < 0.5) return norm_t::_20;
+	else if(d < 0.65) return norm_t::_60;
+	else if(d < 1.0) return norm_t::_70;
+	else assert(false);
+}
+//------------------------------------------------------------
+enum class conc_t { _20 = 1, _30, _60, _70, _80 };
+conc_t to_conc(double d) {
+	if(d < 0.25) return conc_t::_20;
+	else if(d < 0.5) return conc_t::_30;
+	else if(d < 0.65) return conc_t::_60;
+	else if(d < 0.75) return conc_t::_70;
+	else if(d < 1.0) return conc_t::_80;
 	else assert(false);
 }
