@@ -147,6 +147,8 @@ cached_similarity(user_id_t other) {
 	} else {
 		inner_prod = intersection.size();
 	}
+	if(vm["private"].as<bool>())
+		inner_prod += laplace_mechanism(similarities[other]);
 	// divide squared inner product by size1 * size2 to get cosine similarity
 	inner_prod *= inner_prod;
 
@@ -154,9 +156,9 @@ cached_similarity(user_id_t other) {
 	//					<< std::setfill('0') << std::setw(3) << a << "-"
 	//					<< std::setfill('0') << std::setw(3) << b << " = "
 	//					<< similarities[id] << std::endl;
-	similarities[other] = inner_prod / training_items.size() * all_peers[other]->training_items.size();
-	if(vm["private"].as<bool>())
-		similarities[other] += laplace_mechanism(similarities[other]);
+	similarities[other] = inner_prod / training_items.size() / all_peers[other]->training_items.size();
+	// if(vm["private"].as<bool>())
+	//	similarities[other] += laplace_mechanism(similarities[other]);
 	return similarities[other];
 }
 
