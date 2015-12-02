@@ -21,7 +21,7 @@ add_item(item_id_t i) {
 		training_items.insert(i);
 
 }
-
+//#include "log.hh"
 void user::
 generate_weights(double min, double max, uint32_t slices) {
 	assert(privacy_weights.empty());
@@ -57,10 +57,14 @@ generate_weights(double min, double max, uint32_t slices) {
 			privacy_weights[item] = 0.5;
 			break;
 		case privacy_class::SLICES: {
-			assert(slices > 1);
+			assert(slices > 1); // in the old code base, flip a coin and choose min or max according to it. FIXME
 			double delta{(max - min)/(slices - 1)};
-			std::uniform_int_distribution<uint8_t> deltas{0, slices - 1};
+			std::uniform_int_distribution<uint32_t> deltas{0u, slices - 1};
 			privacy_weights[item] = min + deltas(rng) * delta;
+			//static logger l{"ff"};
+			// l.log("slices = %d, min = %f, max = %f, weight = %f",slices,min,max,privacy_weights[item]);
+			// std::uniform_real_distribution<double> pc{min, max};
+			// l.log("slices = %d, min = %f, max = %f, weight (old) = %f, weight (new) = %f",slices,min,max,static_cast<uint64_t>(std::ceil(pc(rng)* slices)) / static_cast<double>(slices), privacy_weights[item]);
 			break;
 		}
 		default: assert(false);

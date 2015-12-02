@@ -136,8 +136,8 @@ int main() {
 		auto expr     = to_expr(toks[4]);
 		auto recall		= boost::lexical_cast<double>(toks[11]);
 		switch(expr) {
-		// case expr_t::baseline: baseline[dataset](recall); break;
-		// case expr_t::blind: random[dataset](recall); break;
+		case expr_t::baseline: baseline[dataset](recall); break;
+		case expr_t::blind: random[dataset](recall); break;
 		case expr_t::groups: {
 			auto norm_ratio = to_norm(boost::lexical_cast<double>(toks[8]));
 			auto conc_ratio = to_conc(boost::lexical_cast<double>(toks[9]));
@@ -159,8 +159,8 @@ int main() {
 		default: break;
 		}
 	}
-	// output_slices_plot(slices_expr_values);
-	// output_min_plot(min_expr_values, baseline, random);
+	output_slices_plot(slices_expr_values);
+	output_min_plot(min_expr_values, baseline, random);
 	output_groups_plot(groups_expr_values);
 	return 0;
 }
