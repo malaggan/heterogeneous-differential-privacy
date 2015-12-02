@@ -41,7 +41,7 @@ void output_slices_plot(std::unordered_map<std::tuple<dataset_t, uint32_t, min_t
 	boost::format tf{ts};
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			for(auto & slices : boost::counting_range(1u, 11u)) {
+			for(auto & slices : boost::counting_range(2u, 11u)) {
 				auto k = make_tuple(dataset, slices, min);
 				assert(slices_expr_values.count(k));
 				auto & acc  = slices_expr_values.at(k);
