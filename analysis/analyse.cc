@@ -10,6 +10,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/functional/hash.hpp>
+#include <boost/format.hpp>
 #include <tuple>
 
 namespace std {
@@ -34,25 +35,18 @@ namespace std {
 
 void output_slices_plot(std::unordered_map<std::tuple<dataset_t, uint32_t, min_t>, acc> const &slices_expr_values) {
 	using namespace std;
-	cout << R"(\begin{figure})" << endl
-	     << R"(  \centering)" << endl
-	     << R"(  \begin{tikzpicture})" << endl
-	     << R"(%mark options={style={scale=2}})" << endl
-	     << R"(%line width=1pt)" << endl
-	     << R"(    \begin{groupplot}[ %)" << endl
-	     << R"(      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%)" << endl
-	     << R"(      footnotesize, width=4.5cm, height=5cm, xlabel=$n$, ylabel=Recall, xtick={1,2,3,4,5,6,7,8,9,10}]%))" << endl;
+	cout << "\\begin{figure}\n  \\centering\n  \\begin{tikzpicture}\n%mark options={style={scale=2}}\n%line width=1pt\n    \\begin{groupplot}[ %\n      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%\n      footnotesize, width=4.5cm, height=5cm, xlabel=$n$, ylabel=Recall, xtick={1,2,3,4,5,6,7,8,9,10}]%)\n";
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
-		cout << R"(\nextgroupplot % )" << dataset << endl;
+		cout << "\\nextgroupplot % " << dataset << endl;
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			cout << R"(         \addplot[mark=)";
+			cout << "         \\addplot[mark=";
 			switch(min) {
 			case min_t::zero : cout << "o"; break;
 			case min_t::half : cout << "square"; break;
 			case min_t::nine : cout << "diamond"; break;
 			default : assert(false);
 			}
-			cout << R"(,error bars/.cd,y dir=both, y explicit] plot coordinates { )";
+			cout << ",error bars/.cd,y dir=both, y explicit] plot coordinates { ";
 			for(auto & slices : boost::counting_range(1u, 11u)) {
 				auto k = make_tuple(dataset, slices, min);
 				assert(slices_expr_values.count(k));
@@ -63,15 +57,7 @@ void output_slices_plot(std::unordered_map<std::tuple<dataset_t, uint32_t, min_t
 			cout << " };%			" << endl;
 		}
 	}
-	cout << R"(    \end{groupplot})" << endl
-	     << R"(    \draw (my plots0 c2r1.south)+(0pt,-50pt) node {\ref{groups_legend1}};)" << endl
-	     << R"(    \draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};)" << endl
-	     << R"(    \draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};)" << endl
-	     << R"(    \draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};)" << endl
-	     << R"(  \end{tikzpicture})" << endl << endl
-	     << R"(  \caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, plotted against the number of slices.})" << endl
-	     << R"(  \label{fig:het_priv_steps})" << endl
-	     << R"(\end{figure} % o: min=0, square: min=0.5, diamond: min=0.9)" << endl;
+	cout << "    \\end{groupplot}\n    \\draw (my plots0 c2r1.south)+(0pt,-50pt) node {\\ref{groups_legend1}};\n    \\draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};\n    \\draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};\n    \\draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};\n  \\end{tikzpicture}\n\n  \\caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, plotted against the number of slices.}\n  \\label{fig:het_priv_steps}\n\\end{figure} % o: min=0, square: min=0.5, diamond: min=0.9\n";
 
 }
 
@@ -79,24 +65,19 @@ void output_min_plot(std::unordered_map<std::tuple<dataset_t, min_t>, acc> const
                      std::unordered_map<dataset_t, acc> const &baseline,
                      std::unordered_map<dataset_t, acc> const &random) {
 	using namespace std;
-	cout << R"(\begin{figure})" << endl
-	     << R"(  \centering)" << endl
-	     << R"(  \begin{tikzpicture})" << endl
-	     << R"(    \begin{groupplot}[ %)" << endl
-	     << R"(      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%)" << endl
-	     << R"(footnotesize, width=4.5cm, height=4cm, xlabel=$\underline{u}$, ylabel=Recall, xmin=0,xmax=1, xtick={0,0.5,.9},xmajorgrids=true]%)" << endl;
+	cout << "\\begin{figure}\n  \\centering\n  \\begin{tikzpicture}\n    \\begin{groupplot}[ %\n      group style={ group name=my plots0, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm, },%\nfootnotesize, width=4.5cm, height=4cm, xlabel=$\\underline{u}$, ylabel=Recall, xmin=0,xmax=1, xtick={0,0.5,.9},xmajorgrids=true]%" << endl;
 
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
-		cout << R"(\nextgroupplot % )" << dataset << endl;
+		cout << "\\nextgroupplot % " << dataset << endl;
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			cout << R"(         \addplot[)";
+			cout << "         \\addplot[";
 			switch(min) {
 			case min_t::zero : cout << "mark=o,error bars/.cd,y dir=both, y explicit"; break;
 			case min_t::half : cout << "solid"; break;
 			case min_t::nine : cout << "mark=square"; break;
 			default : assert(false);
 			}
-			cout << R"(] plot coordinates { )";
+			cout << "] plot coordinates { ";
 
 			auto k = make_tuple(dataset, min);
 			assert(min_expr_values.count(k));
@@ -107,15 +88,8 @@ void output_min_plot(std::unordered_map<std::tuple<dataset_t, min_t>, acc> const
 			cout << " };%			" << endl;
 		}
 	}
-	cout << R"(    \end{groupplot})" << endl
-	     << R"(    \draw (my plots0 c2r1.south)+(0pt,-50pt) node {\ref{groups_legend0}};)" << endl
-	     << R"(    \draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};)" << endl
-	     << R"(    \draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};)" << endl
-	     << R"(    \draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};)" << endl
-	     << R"(  \end{tikzpicture})" << endl << endl
-	     << R"(  \caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, averaged over the number of slices. \emph{Baseline} refers to the recall obtained when the system run with no privacy guarantees using the plain version of the clustering algorithm, while \emph{Random} refers to a random clustering process in which peers choose their neighbors totally at random.})" << endl
-	     << R"(  \label{fig:het_priv_one_group})" << endl
-	     << R"(\end{figure})" << endl;
+
+	cout << "    \\end{groupplot}\n    \\draw (my plots0 c2r1.south)+(0pt,-50pt) node {\\ref{groups_legend0}};\n    \\draw (my plots0 c1r1.north)+(0pt,+10pt) node {Survey};\n    \\draw (my plots0 c2r1.north)+(0pt,+10pt) node {Digg};\n    \\draw (my plots0 c3r1.north)+(0pt,+10pt) node {Delicious};\n  \\end{tikzpicture}\n\n  \\caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, averaged over the number of slices. \\emph{Baseline} refers to the recall obtained when the system run with no privacy guarantees using the plain version of the clustering algorithm, while \\emph{Random} refers to a random clustering process in which peers choose their neighbors totally at random.}\n  \\label{fig:het_priv_one_group}\n\\end{figure}\n";
 
 }
 
