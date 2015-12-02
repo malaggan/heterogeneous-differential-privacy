@@ -2,12 +2,13 @@
 set -e # exit immediately on error
 sbt package
 export SPARK_LOCAL_IP=127.0.0.1
-rm -rf baseline blind slices naive groups
+#rm -rf baseline blind slices naive groups
+rm -rf slices
 spark-submit --packages com.databricks:spark-csv_2.11:1.3.0 \
 						 --driver-memory 25G --class Slices --master local[8] \
 						 target/scala-2.11/hdp-analysis_2.11-1.0.jar
-cat baseline/part-* > baseline.csv
-cat blind/part-*		> blind.csv
+#cat baseline/part-* > baseline.csv
+#cat blind/part-*		> blind.csv
 cat slices/part-*		> slices.csv
-cat naive/part-*		> naive.csv
-cat groups/part-*		> groups.csv
+#cat naive/part-*		> naive.csv
+#cat groups/part-*		> groups.csv

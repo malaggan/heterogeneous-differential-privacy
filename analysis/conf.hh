@@ -1,23 +1,16 @@
 #pragma once
-enum class dataset_t { survey = 1, digg = 2, delicious = 3};
-enum class min_t { zero = 1, half = 2, nine = 3 };
 
 #include <string>
 #include <cassert>
 #include <iostream>
+
+enum class dataset_t { survey = 1, digg = 2, delicious = 3};
 dataset_t to_dataset(std::string str) {
 	if(str == "survey.txt") return dataset_t::survey;
 	else if(str == "digg.txt") return dataset_t::digg;
 	else if(str == "delicious.txt") return dataset_t::delicious;
 	else assert(false);
 }
-
-min_t to_min(double d) {
-	if(d < 0.3) return min_t::zero;
-	else if(d < 0.7) return min_t::half;
-	else return min_t::nine;
-}
-
 std::ostream& operator<<(std::ostream &os, const dataset_t &d)
 {
 	switch(d) {
@@ -29,6 +22,12 @@ std::ostream& operator<<(std::ostream &os, const dataset_t &d)
 	return os;
 }
 
+enum class min_t { zero = 1, half = 2, nine = 3 };
+min_t to_min(double d) {
+	if(d < 0.3) return min_t::zero;
+	else if(d < 0.7) return min_t::half;
+	else return min_t::nine;
+}
 std::ostream& operator<<(std::ostream &os, const min_t &d)
 {
 	switch(d) {
@@ -38,4 +37,14 @@ std::ostream& operator<<(std::ostream &os, const min_t &d)
 	default : assert(false);
 	}
 	return os;
+}
+
+enum class expr_t { baseline = 1, blind, slices, groups, naive };
+expr_t to_expr(std::string const &str) {
+	if(str == "baseline") return expr_t::baseline;
+	else if(str == "blind") return expr_t::blind;
+	else if(str == "slices") return expr_t::slices;
+	else if(str == "groups") return expr_t::groups;
+	else if(str == "naive") return expr_t::naive;
+	else assert(false);
 }
