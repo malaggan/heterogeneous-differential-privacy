@@ -32,7 +32,7 @@ void parse_args(int ac, char *av[]) {
 	po::options_description groups("Groups options");
 	groups.add_options()
 		("naive,n", po::bool_switch()->default_value(false), "naive groups mode")
-		("alpha,x", po::value<double>(xxx), "naive alpha factor")
+		("alpha,x", po::value<double>(), "naive alpha factor")
 		("groups,g",po::bool_switch()->default_value(false), "standard groups mode")
 		("unconcerned", po::value<double>(), "ratio of the unconcerned group (0 - 1)")
 		("normal", po::value<double>(), "ratio of the normal group (0 - 1)")
