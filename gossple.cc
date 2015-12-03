@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
 
 	if(vm["header"].as<bool>())
 		std::cout << HEADER << std::endl;
-	boost::interprocess::file_lock flock("/home/malaggan/gossple/.lock");
+	boost::interprocess::file_lock flock("/home/malaggan/gossple/results.csv");
 	flock.lock();
 	for(auto a : joined_peers)
 	{

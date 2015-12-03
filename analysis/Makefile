@@ -2,11 +2,11 @@ default: all
 .PHONY: all TAGS
 CPPFLAGS	:=
 CXX				:= g++
-CXXFLAGS	:= -std=c++14
+CXXFLAGS	:= -std=c++14 -march=native
 LDFLAGS		:= -lpthread -lrt -luuid -ldl
 WARN			:= -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat
 OPT				:= -O3
-DEBUG			:= -g0 #gdb3 -D_GLIBCXX_DEBUG
+DEBUG			:= -g0 #-ggdb3 -D_GLIBCXX_DEBUG
 BIN				:= analyse
 src				 =$(wildcard *.cc)
 obj				 =$(patsubst %.cc,%.o,$(src))

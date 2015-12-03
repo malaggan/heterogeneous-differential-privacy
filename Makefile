@@ -8,7 +8,7 @@ CXXFLAGS:= -std=c++14 #-mmpx
 LDFLAGS := -lboost_program_options -lboost_filesystem -lboost_system #-lmpxwrappers
 
 WARN := -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat # -Werror
-OPT  := -O3
+OPT  := -O3 -march=native
 DEBUG:= -g0 #-ggdb3 -D_GLIBCXX_DEBUG #-fcheck-pointer-bounds
 #SAN  := -fsanitize=undefined -fno-sanitize-recover -fsanitize=float-divide-by-zero -fsanitize=float-cast-overflow  -fsanitize=bounds -fsanitize=alignment -fsanitize=object-size -fsanitize=vptr -fsanitize=leak -fsanitize=shift -fsanitize=integer-divide-by-zero -fsanitize=unreachable -fsanitize=vla-bound -fsanitize=null -fsanitize=return -fsanitize=signed-integer-overflow -fsanitize=bounds -fsanitize=alignment -fsanitize=object-size -fsanitize=nonnull-attribute -fsanitize=returns-nonnull-attribute -fsanitize=bool -fsanitize=enum -fsanitize=thread # -fsanitize=bounds-strict -fsanitize=address
 

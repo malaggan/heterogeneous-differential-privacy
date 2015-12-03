@@ -6,9 +6,6 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <boost/range/counting_range.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/classification.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/format.hpp>
 #include <tuple>
@@ -41,8 +38,10 @@ void output_slices_plot(std::unordered_map<std::tuple<dataset_t, uint32_t, min_t
 	boost::format tf{ts};
 	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
 		for(auto & min : vector<min_t>{min_t::zero, min_t::half, min_t::nine}) {
-			for(auto & slices : boost::counting_range(2u, 11u)) {
+			for(auto & slices : boost::counting_range(1u, 11u)) {
 				auto k = make_tuple(dataset, slices, min);
+				if(!slices_expr_values.count(k))
+					cout << get<dataset_t>(k) << " " << get<uint32_t>(k) << " " << get<min_t>(k) << endl;
 				assert(slices_expr_values.count(k));
 				auto & acc  = slices_expr_values.at(k);
 				double mean, ci; tie(mean,ci) = mean_range(acc);
@@ -108,57 +107,69 @@ void output_groups_plot(std::unordered_map<std::tuple<dataset_t, norm_t, conc_t,
 	ofstream tout{"groups.tex"};
 	tout << tf;
 }
-
+#include <cstdio>
+#include <cstring>
+#include <array>
 int main() {
 	using namespace std;
 	unordered_map<tuple<dataset_t, uint32_t, min_t>, acc> slices_expr_values;
 	unordered_map<tuple<dataset_t, min_t>, acc> min_expr_values;
 	unordered_map<tuple<dataset_t, norm_t, conc_t, peer_type>, acc> groups_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
-	auto comma = boost::is_any_of(",");
-	ifstream is{"/home/malaggan/gossple/results.csv"};
-	string str;
-	bool first = true;
-	while(getline(is, str))
+	uint64_t line{0};
+	std::array<char*, 12> toks{};
+	// getline(is, str); // ignore first line (header)
+	auto is = fopen("/home/malaggan/gossple/results.csv","r");
+	char *str = new char[500]();
+	size_t n = sizeof(str);
+	getline(&str, &n, is); // ignore first line (header)
+	while(getline(&str, &n, is) >= 0)
 	{
-		// ignore first line (header)
-		if(first) {
-			first = false;
-			continue;
-		}
-		// group by datase, slices, min:
-		// compute mean and MeanCI
-		std::vector<std::string> toks{};
-		boost::split(toks, str, comma);
+		if(++line % 100000 == 0)
+			cout << (line/100000) << "/" << 900ull << endl;
+		auto s = str;
+		toks[0] = strsep (&s, ",");
+		toks[1] = strsep (&s, ",");
+		toks[2] = strsep (&s, ",");
+		toks[3] = strsep (&s, ",");
+		toks[4] = strsep (&s, ",");
+		toks[5] = strsep (&s, ",");
+		toks[6] = strsep (&s, ",");
+		toks[7] = strsep (&s, ",");
+		toks[8] = strsep (&s, ",");
+		toks[9] = strsep (&s, ",");
+		toks[10] = strsep (&s, ",");
+		toks[11] = strsep (&s, ",\n");
 		//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,    10,    11
 		//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,epsilon,recall
-		auto dataset	= to_dataset(toks[0]);
-		auto expr     = to_expr(toks[4]);
-		auto recall		= boost::lexical_cast<double>(toks[11]);
+		auto dataset{(toks[0][0] == 'x')?dataset_t::survey:to_dataset(toks[0])};
+		auto expr{to_expr(toks[4])};
+		auto recall{strtod(toks[11], nullptr)};
 		switch(expr) {
 		case expr_t::baseline: baseline[dataset](recall); break;
 		case expr_t::blind: random[dataset](recall); break;
 		case expr_t::groups: {
-			auto norm_ratio = to_norm(boost::lexical_cast<double>(toks[8]));
-			auto conc_ratio = to_conc(boost::lexical_cast<double>(toks[9]));
-			auto ptype = to_peer_type(toks[3]);
-			auto & acc = groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)];
+			auto norm_ratio{to_norm(strtod(toks[8], nullptr))};
+			auto conc_ratio{to_conc(strtod(toks[9], nullptr))};
+			auto ptype{to_peer_type(toks[3])};
+			auto & acc{groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)]};
 			acc(recall);
 		}
 			break;
 		case expr_t::slices: {
-			auto slices		= boost::lexical_cast<uint32_t>(toks[5]);
-			auto min			= to_min(boost::lexical_cast<double>(toks[6]));
+			auto slices{strtoul(toks[5],nullptr,0)};
+			auto min{to_min(strtod(toks[6], nullptr))};
 
-			auto & acc1 = slices_expr_values[make_tuple(dataset,slices,min)];
+			auto & acc1{slices_expr_values[make_tuple(dataset,slices,min)]};
 			acc1(recall);
-			auto & acc2 = min_expr_values[make_tuple(dataset,min)];
+			auto & acc2{min_expr_values[make_tuple(dataset,min)]};
 			acc2(recall);
 			break;
 		}
 		default: break;
 		}
 	}
+	delete[] str;
 	output_slices_plot(slices_expr_values);
 	output_min_plot(min_expr_values, baseline, random);
 	output_groups_plot(groups_expr_values);

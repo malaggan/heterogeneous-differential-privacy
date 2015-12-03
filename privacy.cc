@@ -21,7 +21,7 @@ add_item(item_id_t i) {
 		training_items.insert(i);
 
 }
-//#include "log.hh"
+// #include "log.hh"
 void user::
 generate_weights(double min, double max, uint32_t slices) {
 	assert(privacy_weights.empty());
@@ -57,14 +57,19 @@ generate_weights(double min, double max, uint32_t slices) {
 			privacy_weights[item] = 0.5;
 			break;
 		case privacy_class::SLICES: {
-			assert(slices > 1); // in the old code base, flip a coin and choose min or max according to it. FIXME
-			double delta{(max - min)/(slices - 1)};
-			std::uniform_int_distribution<uint32_t> deltas{0u, slices - 1};
+			// if(slices == 1) {
+			//	if(std::bernoulli_distribution{0.5}(rng))
+			//		privacy_weights[item] = min;
+			//	else
+			//		privacy_weights[item] = max;
+			// } else {
+			double delta{(max - min)/slices};
+			std::uniform_int_distribution<uint32_t> deltas{0u, slices};
 			privacy_weights[item] = min + deltas(rng) * delta;
-			//static logger l{"ff"};
-			// l.log("slices = %d, min = %f, max = %f, weight = %f",slices,min,max,privacy_weights[item]);
+			// static logger l{"ff"};
 			// std::uniform_real_distribution<double> pc{min, max};
-			// l.log("slices = %d, min = %f, max = %f, weight (old) = %f, weight (new) = %f",slices,min,max,static_cast<uint64_t>(std::ceil(pc(rng)* slices)) / static_cast<double>(slices), privacy_weights[item]);
+			// l.log("weight (old) = %f, weight (new) = %f",static_cast<uint64_t>(std::ceil(pc(rng)* slices)) / static_cast<double>(slices), privacy_weights[item]);
+			//}
 			break;
 		}
 		default: assert(false);

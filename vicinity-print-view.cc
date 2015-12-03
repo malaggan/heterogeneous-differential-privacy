@@ -49,11 +49,11 @@ void user::vicinity_print_view() {
 }
 
 double user::recall() const {
+	if(test_items.size() == 0)
+		return 0.0;
 	std::vector<item_id_t> intersection;
 	for(auto neighbor : vicinity_view | ::helpers::map_ids)
-		boost::set_intersection(all_peers[id]->test_items, all_peers[neighbor]->items, std::back_inserter<>(intersection));
+		boost::set_intersection(test_items, all_peers[neighbor]->items, std::back_inserter<>(intersection));
 	std::set<item_id_t> s{std::begin(intersection), std::end(intersection)};
-	if(all_peers[id]->test_items.size() == 0)
-		return 0.0;
-	return static_cast<double>(s.size()) / static_cast<double>(all_peers[id]->test_items.size());
+	return static_cast<double>(s.size()) / static_cast<double>(test_items.size());
 }
