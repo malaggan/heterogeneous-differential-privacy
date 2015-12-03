@@ -77,8 +77,18 @@ static maybe<user*> create_user(user_id_t id, user::set_t joined_peers) {
 	   (vm["naive"].as<bool>() or vm["groups"].as<bool>())) {
 		auto cls = random_privacy_class();
 		// in naive experiment, we throw away all concerned peers
-		if(vm["naive"].as<bool>() and cls == user::privacy_class::CONCERNED)
-			return none;
+		if(vm["naive"].as<bool>() and cls == user::privacy_class::CONCERNED) {
+			if(vm.count("alpha")) { // throw only with probability alpha
+				auto alpha = vm["alpha"].as<double>();
+				assert(0.0 <= alpha and alpha <= 1.0);
+				if(std::bernoulli_distribution{alpha}(rng))
+					return none;
+				else
+					return some(new user{id, joined_peers, user::privacy_class::NAIVE /* not CONCERNED as should be, because this is homogeneous privacy, not hetegeneous. */});
+			} else {
+				return none;
+			}
+		}
 
 		// in naive experiment, after we throw away the fussy, everyone
 		// else is treated homogenously, taking into account the

@@ -18,7 +18,7 @@
 #include <algorithm>
 #include <functional>
 #include <iterator>
-std::string HEADER{"dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,epsilon,recall"};
+std::string HEADER{"dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall"};
 
 namespace gossple {
 	// these must be public so as to no be destructed (and hence, closed),
@@ -206,6 +206,7 @@ int main(int argc, char *argv[]) {
 		print_or_na_or_either("naive", "groups", "unconcerned", unconcerned);
 		print_or_na_or_either("naive", "groups", "normal", normal);
 		print_or_na_or_either("naive", "groups", "concerned", concerned);
+		print_or_na<double>("alpha");
 		// --- privacy options
 		extern double epsilon;
 		std::cout << epsilon << ',';

@@ -117,7 +117,7 @@ int main() {
 	unordered_map<tuple<dataset_t, norm_t, conc_t, peer_type>, acc> groups_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
 	uint64_t line{0};
-	std::array<char*, 12> toks{};
+	std::array<char*, 13> toks{};
 	// getline(is, str); // ignore first line (header)
 	auto is = fopen("/home/malaggan/gossple/results.csv","r");
 	char *str = new char[500]();
@@ -139,12 +139,13 @@ int main() {
 		toks[8] = strsep (&s, ",");
 		toks[9] = strsep (&s, ",");
 		toks[10] = strsep (&s, ",");
-		toks[11] = strsep (&s, ",\n");
-		//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,    10,    11
-		//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,epsilon,recall
-		auto dataset{(toks[0][0] == 'x')?dataset_t::survey:to_dataset(toks[0])};
+		toks[11] = strsep (&s, ",");
+		toks[12] = strsep (&s, ",\n");
+		//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,   10,     11,    12
+		//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
+		auto dataset{to_dataset(toks[0])};
 		auto expr{to_expr(toks[4])};
-		auto recall{strtod(toks[11], nullptr)};
+		auto recall{strtod(toks[12], nullptr)};
 		switch(expr) {
 		case expr_t::baseline: baseline[dataset](recall); break;
 		case expr_t::blind: random[dataset](recall); break;
