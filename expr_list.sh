@@ -2406,7 +2406,7 @@ do
 		./gossple delicious.txt --log LOG -o results.csv -apne 0.1 -x 0.6 --normal 0.7 --unconcerned 0.7 &
 		./gossple delicious.txt --log LOG -o results.csv -apne 0.1 -x 0.8 --normal 0.7 --unconcerned 0.7 &
 		wait
-		cd analysis
-		./analyse
-		cd ..
+		# cd analysis
+		# ./analyse
+		# cd ..
 done

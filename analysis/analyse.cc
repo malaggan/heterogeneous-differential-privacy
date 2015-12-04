@@ -107,14 +107,42 @@ void output_groups_plot(std::unordered_map<std::tuple<dataset_t, norm_t, conc_t,
 	ofstream tout{"groups.tex"};
 	tout << tf;
 }
+
+void output_alpha_plot(std::unordered_map<std::tuple<dataset_t, conc_t, alpha_t>, acc> const &alpha_expr_values) {
+	using namespace std;
+	ifstream tin{"alpha.tex.in"};
+	string ts{istreambuf_iterator<char>(tin), istreambuf_iterator<char>()};
+	boost::format tf{ts};
+	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious})
+		for(auto & conc : vector<conc_t>{conc_t::_20, conc_t::_30, conc_t::_60, conc_t::_70, conc_t::_80})
+			for(auto & alpha : vector<alpha_t>{alpha_t::_0, alpha_t::_20, alpha_t::_40, alpha_t::_60, alpha_t::_80, alpha_t::_100}) {
+				auto k = make_tuple(dataset, conc, alpha);
+				if(!alpha_expr_values.count(k))
+					cout << dataset << ", " << conc << ", " << alpha << endl;
+				assert(alpha_expr_values.count(k));
+				auto & acc  = alpha_expr_values.at(k);
+				double mean; tie(mean,ignore) = mean_range(acc);
+				tf % mean;
+			}
+
+	ofstream tout{"alpha.tex"};
+	tout << tf;
+}
+
 #include <cstdio>
 #include <cstring>
 #include <array>
+
+//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,   10,     11,    12
+//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
+static constexpr size_t DATASET=0, PTYPE=3, EXPR=4, SLICES=5, MIN=6, NORMAL=8, CONCERNED=9, ALPHA=10, RECALL=12;
+
 int main() {
 	using namespace std;
 	unordered_map<tuple<dataset_t, uint32_t, min_t>, acc> slices_expr_values;
 	unordered_map<tuple<dataset_t, min_t>, acc> min_expr_values;
 	unordered_map<tuple<dataset_t, norm_t, conc_t, peer_type>, acc> groups_expr_values;
+	unordered_map<tuple<dataset_t, conc_t, alpha_t>, acc> alpha_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
 	uint64_t line{0};
 	std::array<char*, 13> toks{};
@@ -128,38 +156,51 @@ int main() {
 		if(++line % 100000 == 0)
 			cout << (line/100000) << "/" << 900ull << endl;
 		auto s = str;
-		toks[0] = strsep (&s, ",");
-		toks[1] = strsep (&s, ",");
-		toks[2] = strsep (&s, ",");
-		toks[3] = strsep (&s, ",");
-		toks[4] = strsep (&s, ",");
-		toks[5] = strsep (&s, ",");
-		toks[6] = strsep (&s, ",");
-		toks[7] = strsep (&s, ",");
-		toks[8] = strsep (&s, ",");
-		toks[9] = strsep (&s, ",");
-		toks[10] = strsep (&s, ",");
-		toks[11] = strsep (&s, ",");
+		for(auto & i : boost::counting_range(0u, 12u))
+			toks[i] = strsep (&s, ",");
 		toks[12] = strsep (&s, ",\n");
-		//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,   10,     11,    12
-		//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
-		auto dataset{to_dataset(toks[0])};
-		auto expr{to_expr(toks[4])};
-		auto recall{strtod(toks[12], nullptr)};
+
+		auto dataset{to_dataset(toks[DATASET])};
+		auto expr{to_expr(toks[EXPR])};
+		auto recall{strtod(toks[RECALL], nullptr)};
+
 		switch(expr) {
 		case expr_t::baseline: baseline[dataset](recall); break;
 		case expr_t::blind: random[dataset](recall); break;
+		case expr_t::naive: {
+			// i have to image what kind of plot (x,y axis) i want for naive
+			// in order to figure out what variables do i need to pull from
+			// the log. we need these experiments to be comparable to
+			// others, so we are looking for meaningful axes. the variables
+			// we have are: percentage of concerned, and alpha. (and
+			// epsilon).  Plot: one of the two is x-axis the other is line
+			// type.  I choose line type to be concerned since there are 5
+			// values, while the other has more (six values):
+			//
+			// FIXME in naive experiments (fix args.cc and experiments.sh), ratio of unconcerned vs
+			// normal is irrelevant; they both are the same. (saves some experiments)
+			//
+			// we need to plots, naive sans alpha, and naive with alpha
+			// or: consider sans alpha => alpha = 100, and put in one plot.
+			auto alpha{alpha_t::_100};						// if no alpha present, this is the case.
+			if(*toks[ALPHA])
+				alpha = to_alpha(strtod(toks[ALPHA], nullptr));
+			auto conc_ratio{to_conc(strtod(toks[CONCERNED], nullptr))};
+			auto & acc{alpha_expr_values[make_tuple(dataset,conc_ratio,alpha)]};
+			acc(recall);
+		}
+			break;
 		case expr_t::groups: {
-			auto norm_ratio{to_norm(strtod(toks[8], nullptr))};
-			auto conc_ratio{to_conc(strtod(toks[9], nullptr))};
-			auto ptype{to_peer_type(toks[3])};
+			auto norm_ratio{to_norm(strtod(toks[NORMAL], nullptr))};
+			auto conc_ratio{to_conc(strtod(toks[CONCERNED], nullptr))};
+			auto ptype{to_peer_type(toks[PTYPE])};
 			auto & acc{groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)]};
 			acc(recall);
 		}
 			break;
 		case expr_t::slices: {
-			auto slices{strtoul(toks[5],nullptr,0)};
-			auto min{to_min(strtod(toks[6], nullptr))};
+			auto slices{strtoul(toks[SLICES],nullptr,0)};
+			auto min{to_min(strtod(toks[MIN], nullptr))};
 
 			auto & acc1{slices_expr_values[make_tuple(dataset,slices,min)]};
 			acc1(recall);
@@ -174,5 +215,6 @@ int main() {
 	output_slices_plot(slices_expr_values);
 	output_min_plot(min_expr_values, baseline, random);
 	output_groups_plot(groups_expr_values);
+	output_alpha_plot(alpha_expr_values);
 	return 0;
 }

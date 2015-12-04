@@ -14,7 +14,7 @@
         coordinates { (0, %9%) +- (0,{%10%}) (0.5, %11%) +- (0,{%12%}) (0.9, %13%) +- (0,{%14%}) }; %%
         \addplot[solid] plot coordinates { (0, %15%) (0.5, %15%) (0.9, %15%) };%% baseline
         \addplot[mark=square] plot coordinates { (0, %16%) (0.5, %16%) (0.9, %16%) }; %% totally random
-      \nextgroupplot[legend entries={HDP;,Baseline;,Totally random},legend to name=groups_legend0] %% delicious
+      \nextgroupplot[legend columns=3, legend entries={HDP;,Baseline;,Totally random},legend to name=groups_legend0] %% delicious
         \addplot[mark=o,error bars/.cd,y dir=both, y explicit] plot
         coordinates { (0, %17%) +- (0, {%18%}) (0.5, %19%) +- (0, {%20%}) (0.9, %21%) +- (0, {%22%}) };%%
         \addplot[solid] plot coordinates { (0,%23%) (0.5,%23%) (0.9,%23%) }; %% baseline

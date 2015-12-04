@@ -58,7 +58,7 @@ xtick={0.2,0.3,0.6,0.7,0.8},xticklabels={$\frac{2}{10}$,$\frac{3}{10}$,$\frac{6}
       \addplot[mark=o,line width=1pt] plot coordinates{ (0.3,%82%) (0.2,%83%) }; %%
       \addplot[mark=square,line width=1pt] plot coordinates{ (0.3,%84%) (0.2,%85%) }; %%
       \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.3,%86%) (0.2,%87%) }; %%
-      \nextgroupplot[legend columns=1, legend entries={\textsc{Fundamentalists};,\textsc{Pragmatists};,\textsc{Unconcerned}}, legend to name=groups_legend3] %% norm = 0.7
+      \nextgroupplot[legend columns=3, legend entries={\textsc{Fundamentalists};,\textsc{Pragmatists};,\textsc{Unconcerned}}, legend to name=groups_legend3] %% norm = 0.7
       \addplot[mark=o,line width=1pt] plot coordinates{ (0.2,%88%) }; %%
       \addplot[mark=square,line width=1pt] plot coordinates{ (0.2,%89%) }; %%
       \addplot[mark=diamond,line width=1pt] plot coordinates{ (0.2,%90%) }; %%

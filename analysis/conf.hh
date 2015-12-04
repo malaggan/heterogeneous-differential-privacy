@@ -79,3 +79,39 @@ conc_t to_conc(double d) {
 	else if(d < 1.0) return conc_t::_80;
 	else assert(false);
 }
+std::ostream& operator<<(std::ostream &os, const conc_t &d)
+{
+	switch(d) {
+	case conc_t::_20 : os << "20%"; break;
+	case conc_t::_30 : os << "30%"; break;
+	case conc_t::_60 : os << "60%"; break;
+	case conc_t::_70 : os << "70%"; break;
+	case conc_t::_80 : os << "80%"; break;
+	default : assert(false);
+	}
+	return os;
+}
+//------------------------------------------------------------
+enum class alpha_t { _0 = 1, _20, _40, _60, _80, _100 };
+alpha_t to_alpha(double d) {
+	if(d < 0.10) return alpha_t::_0;
+	else if(d < 0.30) return alpha_t::_20;
+	else if(d < 0.50) return alpha_t::_40;
+	else if(d < 0.70) return alpha_t::_60;
+	else if(d < 0.90) return alpha_t::_80;
+	else if(d < 1.1) return alpha_t::_100;
+	else assert(false);
+}
+std::ostream& operator<<(std::ostream &os, const alpha_t &d)
+{
+	switch(d) {
+	case alpha_t::_0 : os << "0%"; break;
+	case alpha_t::_20 : os << "20%"; break;
+	case alpha_t::_40 : os << "40%"; break;
+	case alpha_t::_60 : os << "60%"; break;
+	case alpha_t::_80 : os << "80%"; break;
+	case alpha_t::_100 : os << "100%"; break;
+	default : assert(false);
+	}
+	return os;
+}
