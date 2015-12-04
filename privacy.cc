@@ -63,7 +63,7 @@ generate_weights(double min, double max, uint32_t slices) {
 			//	else
 			//		privacy_weights[item] = max;
 			// } else {
-			double delta{(max - min)/slices};
+			double delta{(max - min)/slices}; // slices = n-1 from the paper.
 			std::uniform_int_distribution<uint32_t> deltas{0u, slices};
 			privacy_weights[item] = min + deltas(rng) * delta;
 			// static logger l{"ff"};
