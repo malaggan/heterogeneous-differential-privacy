@@ -42,15 +42,26 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, 
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer
 	//   from the VICINITY view and the CYCLON view
-
+	user_id_t p;
+	if(dest_opt) p = dest_opt.value();
+	else {
+		auto oldest_vicinity_peer = vicinity_view.get_oldest_peer();
+		if(oldest_vicinity_peer) p = oldest_vicinity_peer.value()->id;
+		else {
+			auto oldest_cyclon_peer = cyclon_view.get_oldest_peer();
+			if(oldest_cyclon_peer) p = oldest_cyclon_peer.value()->id;
+			else assert(false);
+		}
+	}
+//	all_peers[
+//		dest_opt
+//		.value_or(
+//			vicinity_view.get_oldest_peer()
+//			.self_or(
+//				cyclon_view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
+//			.value()->id)],
 	return std::make_tuple(
-		all_peers[
-			dest_opt
-			.value_or(
-				vicinity_view.get_oldest_peer()
-				.self_or(
-					cyclon_view.get_oldest_peer()/*fixme: wasted cycles as not lazy*/)
-				.value()->id)],
+		all_peers[p],
 		view_t{}
 		.clear_and_assign(
 			priority_queue<ventry, viewSize/2, semantic_comp>{vicinity_view,  this}

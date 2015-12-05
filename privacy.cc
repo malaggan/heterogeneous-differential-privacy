@@ -137,18 +137,23 @@ cached_similarity(user_id_t other) {
 	if(similarities.count(other))
 		return similarities[other];
 
-	if(training_items.size() == 0 || all_peers[other]->training_items.size() == 0)
+	if(training_items.size() == 0)
+		return similarities[other] = 0; // TODO discard users with empty profile from the very beginning
+
+	auto & p = all_peers[other];
+	auto & t = p->training_items;
+	if(t.size() == 0)
 		return similarities[other] = 0; // TODO discard users with empty profile from the very beginning
 
 	std::vector<item_id_t> intersection;
-	boost::set_intersection(training_items, all_peers[other]->training_items, std::back_inserter<>(intersection));
+	boost::set_intersection(training_items, p->training_items, std::back_inserter<>(intersection));
 
 	double inner_prod{0.0};
 
 	if(vm["private"].as<bool>()) {
 		ba::accumulator_set<double, ba::features<ba::tag::sum>> acc;
 		boost::range::for_each(weights_of(intersection),
-		                       all_peers[other]->weights_of(intersection),
+		                       p->weights_of(intersection),
 		                       std::bind(std::ref(acc),
 		                                 std::bind(std::multiplies<double>(),
 		                                           std::placeholders::_1,
@@ -167,14 +172,13 @@ cached_similarity(user_id_t other) {
 	//					<< std::setfill('0') << std::setw(3) << a << "-"
 	//					<< std::setfill('0') << std::setw(3) << b << " = "
 	//					<< similarities[id] << std::endl;
-	similarities[other] = inner_prod / training_items.size() / all_peers[other]->training_items.size();
+	similarities[other] = inner_prod / training_items.size() / p->training_items.size();
 	// if(vm["private"].as<bool>())
 	//	similarities[other] += laplace_mechanism(similarities[other]);
 	return similarities[other];
 }
 
 double similarity(ventry &a, ventry &b) {
-	extern all_t all_peers;
 	return all_peers[a.id]->cached_similarity(b.id);
 }
 

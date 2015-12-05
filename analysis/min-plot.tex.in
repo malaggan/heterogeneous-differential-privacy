@@ -24,6 +24,6 @@
     \draw (min plots c3r1.north)+(0pt,+10pt) node {Delicious};
   \end{tikzpicture}
 
-  \caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, averaged over the number of slices. \emph{Baseline} refers to the recall obtained when the system run with no privacy guarantees using the plain version of the clustering algorithm, while \emph{Random} refers to a random clustering process in which peers choose their neighbors totally at random. Bars represent 99\%% confidence interval around the mean.}
+  \caption{The value reported is the average recall obtained when all peers have the same distribution over privacy weights for all items, averaged over the number of slices. \emph{Baseline} refers to the recall obtained when the system run with no privacy guarantees using the plain version of the clustering algorithm, while \emph{Random} refers to a random clustering process in which peers choose their neighbors totally at random. Bars represent 99\%% confidence interval around the mean (they are almost invisible for Digg and Delicious).}
   \label{fig:het_priv_one_group}
 \end{figure}

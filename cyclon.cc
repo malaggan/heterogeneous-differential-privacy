@@ -44,6 +44,7 @@ using std::right;
 user::user(user_id_t me, set_t &already_joined, privacy_class prv_cls)
 	: id{me}, prv_cls{prv_cls}, cyclon_view{}, vicinity_view{}, items{}, privacy_weights{}, similarities{}
 {
+	all_peers.push_back(this);
 	auto bootstrapPeers = already_joined.random_subset(viewSize);
 	for(auto rps_other : bootstrapPeers)
 	{
@@ -59,9 +60,12 @@ user::user(user_id_t me, set_t &already_joined, privacy_class prv_cls)
 				add(removed);
 		}
 	}
+	if(id > 0)
+		assert(!cyclon_view.empty());
 }
 
 void user::add(user_id_t u) {
+	assert(u < all_peers.size());
 	cyclon_view.add(u);
 }
 
@@ -71,6 +75,7 @@ bool user::contains(user_id_t u) const {
 
 void user::remove(user_id_t u) {
 	cyclon_view.remove(u);
+	assert(!cyclon_view.empty());
 }
 
 auto user::operator[](user_id_t u)       -> maybe<view_t::iterator>       { return cyclon_view.get_by_id(u); }
@@ -140,7 +145,6 @@ void user::cyclon_receive_gossip(
 	copy(to_be_received, std::inserter(cyclon_view, end(cyclon_view))); // NOTE: change this to copy_if, using `!contains', if view_t is not a `set' . Instead:
 	//        auto it = std::unique(row.begin(), row.end()); row.resize(it - row.begin());
 
-	//
 	// update age of entries contained in my view with those arriving !
 	for(auto const& a : to_be_received)
 	{
@@ -151,8 +155,9 @@ void user::cyclon_receive_gossip(
 	// 7. Update my view to include all remaining entries, by firstly using empty view ventrys (if any) [[done above in `copy']],
 	// and secondly replacing entries among the ones sent to Q.
 
-	auto excess = cyclon_view.size() - viewSize;
+	int excess = static_cast<int>(cyclon_view.size()) - static_cast<int>(viewSize); // <<< this was the bug. unsigned sum is never negative
 	if(excess <= 0) return;
+	logger l{"user::cyclon_receive_gossip"};
 	// remove elements from those sent to Q until size is within bounds
 	for(auto a  = begin(was_sent); a != end(was_sent) && excess > 0; excess--) // not using range-based for because I need an iterator for `erase'
 	{
@@ -161,6 +166,7 @@ void user::cyclon_receive_gossip(
 		{
 			a = was_sent.erase(a); // assignment keeps the iterator valid by pointing to the next one
 			cyclon_view.erase(p);
+			assert(!cyclon_view.empty());
 		}
 		else
 			++a;
@@ -173,6 +179,7 @@ void user::cyclon_do_gossip() {
 	view_t to_send;
 	user *target;
 	std::tie(target, to_send) = cyclon_send_gossip();
+	assert(target);
 
 	view_t to_receive;
 	std::tie(ignore, to_receive) = target->cyclon_send_gossip(some(id));
