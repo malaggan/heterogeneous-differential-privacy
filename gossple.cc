@@ -71,6 +71,12 @@ void print_if(std::string const & name) {
 		std::cout << name << ',';
 }
 
+void print_flag(std::string const & name, std::string const & name_if_false) {
+	if(vm[name].as<bool>())
+		std::cout << name;
+	else std::cout << name_if_false << ',';
+}
+
 template<typename T>
 void print_or_na_or_either(std::string const & expr1, std::string const & expr2, std::string const & name, T const & v) {
 	if(vm.count(name) or vm[expr1].as<bool>() or vm[expr2].as<bool>())
@@ -198,6 +204,7 @@ int main(int argc, char *argv[]) {
 		print_if("blind");
 		print_or_ignore("slices");
 		print_if_not("private", "baseline");
+		print_flag("all-peers","some-peers");
 		// --- slices info
 		print_or_na<uint32_t>("slices");
 		print_or_na<double>("min");

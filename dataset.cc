@@ -134,7 +134,7 @@ user::set_t load_dataset()
 		if(id > currently_reading_id) {
 			currently_reading_id = id;
 			// throw away random 10% of users
-			if(std::bernoulli_distribution{0.1}(rng)){
+			if(std::bernoulli_distribution{0.1}(rng) and not vm["all-peers"].as<bool>()){
 					ignore_id = id;
 					continue;
 			}

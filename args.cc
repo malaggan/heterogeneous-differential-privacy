@@ -18,6 +18,7 @@ void parse_args(int ac, char *av[]) {
     ("random-seed,r", po::value<uint32_t>(), "the random seed to use for reproducibility. If not given, fresh randomness is used every time")
 		("private,p", po::bool_switch()->default_value(false), "enable differential privacy (via the Laplacian mechanism)")
 		("blind,b", po::bool_switch()->default_value(false), "random clustering baseline: all private weights are zero")		// add naive variant where max privacy weight is zero instead (akin to providing them with a random view) and where peers are not removed.
+		("all-peers", po::bool_switch()->default_value(false), "do not randomly remove 10% of users")
 		("epsilon,e", po::value<double>(&epsilon), "the differential privacy parameter")
 		("secure", po::bool_switch()->default_value(false), "use secure Laplace noise generation due to Ilya Mironov") // TODO
 		;

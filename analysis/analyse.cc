@@ -133,9 +133,10 @@ void output_alpha_plot(std::unordered_map<std::tuple<dataset_t, conc_t, alpha_t>
 #include <cstring>
 #include <array>
 
-//      0,   1,      2,         3,   4,     5,  6,          7,     8,        9,   10,     11,    12
-//dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
-static constexpr size_t DATASET=0, PTYPE=3, EXPR=4, SLICES=5, MIN=6, NORMAL=8, CONCERNED=9, ALPHA=10, RECALL=12;
+//      0,   1,      2,         3,   4,                 5,      6,  7,          8,     9,       10,   11,     12     13
+//dataset,seed,user-id,user-class,expr,user-participation, slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
+static constexpr size_t DATASET=0, PTYPE=3, EXPR=4, SLICES=6, MIN=7, NORMAL=9, CONCERNED=10, ALPHA=11, RECALL=13;
+static constexpr uint32_t ntoks = 14;
 
 int main() {
 	using namespace std;
@@ -145,7 +146,7 @@ int main() {
 	unordered_map<tuple<dataset_t, conc_t, alpha_t>, acc> alpha_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
 	uint64_t line{0};
-	std::array<char*, 13> toks{};
+	std::array<char*, 14> toks{};
 	// getline(is, str); // ignore first line (header)
 	auto is = fopen("/home/malaggan/gossple/results.csv","r");
 	char *str = new char[500]();
@@ -156,9 +157,9 @@ int main() {
 		if(++line % 100000 == 0)
 			cout << (line/100000) << "/" << 900ull << endl;
 		auto s = str;
-		for(auto & i : boost::counting_range(0u, 12u))
+		for(auto & i : boost::counting_range(0u, ntoks - 1))
 			toks[i] = strsep (&s, ",");
-		toks[12] = strsep (&s, ",\n");
+		toks[ntoks - 1] = strsep (&s, ",\n");
 
 		auto dataset{to_dataset(toks[DATASET])};
 		auto expr{to_expr(toks[EXPR])};
