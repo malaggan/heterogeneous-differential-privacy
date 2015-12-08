@@ -73,7 +73,7 @@ void print_if(std::string const & name) {
 
 void print_flag(std::string const & name, std::string const & name_if_false) {
 	if(vm[name].as<bool>())
-		std::cout << name;
+		std::cout << name << ',';
 	else std::cout << name_if_false << ',';
 }
 

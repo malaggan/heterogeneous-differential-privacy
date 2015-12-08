@@ -1,0 +1,51 @@
+\begin{figure}
+  \centering
+  \begin{tikzpicture}
+    \begin{groupplot}[group style={group name=alpha baseline plots, group size=3 by 1, x descriptions at=edge bottom, horizontal sep=2cm, vertical sep=0.1cm}, footnotesize, width=4.5cm, height=4.5cm, xlabel={\scriptsize\textsc{Fundamentalists}}, ylabel=Recall, xmin=0,xmax=1, xtick={0.2,0.3,0.6,0.7,0.8},xticklabels={$\frac{2}{10}$,$\frac{3}{10}$,$\frac{6}{10}$,$\frac{7}{10}$,$\frac{8}{10}$}, xmajorgrids=true]%%
+      %% naive 100%% -> hdp
+      \nextgroupplot
+      \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%1%) %%
+																															 (0.3,%2%) %%
+																															 (0.6,%3%) %%
+																															 (0.7,%4%) %%
+																															 (0.8,%5%) }; %%
+			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%6%) %%
+																															 (0.3,%7%) %%
+																															 (0.6,%8%) %%
+																															 (0.7,%9%) %%
+																															 (0.8,%10%) }; %%
+%% DIGG
+      \nextgroupplot
+      \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%11%) %%
+																															 (0.3,%12%) %%
+																															 (0.6,%13%) %%
+																															 (0.7,%14%) %%
+																															 (0.8,%15%) }; %%
+			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%16%) %%
+																															 (0.3,%17%) %%
+																															 (0.6,%18%) %%
+																															 (0.7,%19%) %%
+																															 (0.8,%20%) }; %%
+%% DELICIOUS
+      \nextgroupplot[legend columns=5, legend entries={Naive with $\alpha=100\%%$;,HDP}, legend to name=alpha_baseline_plots_legend] %%
+      \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%21%) %%
+																															 (0.3,%22%) %%
+																															 (0.6,%23%) %%
+																															 (0.7,%24%) %%
+																															 (0.8,%25%) }; %%
+			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%26%) %%
+																															 (0.3,%27%) %%
+																															 (0.6,%28%) %%
+																															 (0.7,%29%) %%
+																															 (0.8,%30%) }; %%
+    \end{groupplot}
+
+		\draw (alpha baseline plots c1r1.north)+(0,10pt) node {Survey};
+    \draw (alpha baseline plots c2r1.north)+(0,10pt) node {Digg};
+    \draw (alpha baseline plots c3r1.north)+(0,10pt) node {Delicious};
+
+  \end{tikzpicture}
+  \ref{alpha_baseline_plots_legend}
+  \caption{xxx}
+  \label{fig:het_priv_naive_alpha_baseline}
+\end{figure}

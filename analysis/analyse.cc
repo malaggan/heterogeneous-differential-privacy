@@ -129,13 +129,47 @@ void output_alpha_plot(std::unordered_map<std::tuple<dataset_t, conc_t, alpha_t>
 	tout << tf;
 }
 
+void output_alpha_baseline_plot(std::unordered_map<std::tuple<dataset_t, conc_t, alpha_t>, acc> const &alpha_expr_values,
+                                std::unordered_map<std::tuple<dataset_t, conc_t>, acc> const &alpha_baseline_expr_values) {
+	using namespace std;
+	ifstream tin{"alpha_baseline.tex.in"};
+	string ts{istreambuf_iterator<char>(tin), istreambuf_iterator<char>()};
+	boost::format tf{ts};
+	for(auto & dataset : vector<dataset_t>{dataset_t::survey, dataset_t::digg, dataset_t::delicious}) {
+		for(auto & conc : vector<conc_t>{conc_t::_20, conc_t::_30, conc_t::_60, conc_t::_70, conc_t::_80}) {
+			auto alpha = alpha_t::_100;
+			auto k = make_tuple(dataset, conc, alpha);
+			if(!alpha_expr_values.count(k))
+				cout << dataset << ", " << conc << ", " << alpha << endl;
+			assert(alpha_expr_values.count(k));
+			auto & acc  = alpha_expr_values.at(k);
+			double mean; tie(mean,ignore) = mean_range(acc);
+			tf % mean;
+		}
+		for(auto & conc : vector<conc_t>{conc_t::_20, conc_t::_30, conc_t::_60, conc_t::_70, conc_t::_80}) {
+			// baseline
+			// for groups (non-naive, non-alpha), for each dataset x Cocerned level,  we want the average recall of all peers (of all ptypes)
+			auto k = make_tuple(dataset, conc);
+			if(!alpha_baseline_expr_values.count(k))
+				cout << dataset << ", " << conc << endl;
+			auto & acc  = alpha_baseline_expr_values.at(k);
+			double mean; tie(mean,ignore) = mean_range(acc);
+			tf % mean;
+		}
+	}
+
+	ofstream tout{"alpha_baseline.tex"}; // TODO: use pgfplots addplot table instead of using template files!
+	tout << tf;
+}
+
+
 #include <cstdio>
 #include <cstring>
 #include <array>
 
 //      0,   1,      2,         3,   4,                 5,      6,  7,          8,     9,       10,   11,     12     13
 //dataset,seed,user-id,user-class,expr,user-participation, slices,min,unconcerned,normal,concerned,alpha,epsilon,recall
-static constexpr size_t DATASET=0, PTYPE=3, EXPR=4, SLICES=6, MIN=7, NORMAL=9, CONCERNED=10, ALPHA=11, RECALL=13;
+static constexpr size_t DATASET=0, PTYPE=3, EXPR=4, PARTICIPATION=5, SLICES=6, MIN=7, NORMAL=9, CONCERNED=10, ALPHA=11, RECALL=13;
 static constexpr uint32_t ntoks = 14;
 
 int main() {
@@ -144,9 +178,10 @@ int main() {
 	unordered_map<tuple<dataset_t, min_t>, acc> min_expr_values;
 	unordered_map<tuple<dataset_t, norm_t, conc_t, peer_type>, acc> groups_expr_values;
 	unordered_map<tuple<dataset_t, conc_t, alpha_t>, acc> alpha_expr_values;
+	unordered_map<tuple<dataset_t, conc_t>, acc> alpha_baseline_expr_values;
 	unordered_map<dataset_t, acc> baseline, random;
 	uint64_t line{0};
-	std::array<char*, 14> toks{};
+	std::array<char*, ntoks> toks{};
 	// getline(is, str); // ignore first line (header)
 	auto is = fopen("/home/malaggan/gossple/results.csv","r");
 	char *str = new char[500]();
@@ -154,12 +189,16 @@ int main() {
 	getline(&str, &n, is); // ignore first line (header)
 	while(getline(&str, &n, is) >= 0)
 	{
-		if(++line % 100000 == 0)
-			cout << (line/100000) << "/" << 900ull << endl;
+		if(++line % 1000000 == 0)
+			cout << (line/1000000) << "/" << 270ull << endl;
 		auto s = str;
 		for(auto & i : boost::counting_range(0u, ntoks - 1))
 			toks[i] = strsep (&s, ",");
 		toks[ntoks - 1] = strsep (&s, ",\n");
+
+		// average all-peers and some-peers together.
+		// if(!strcmp(toks[PARTICIPATION], "all-peers"))
+		//    continue;
 
 		auto dataset{to_dataset(toks[DATASET])};
 		auto expr{to_expr(toks[EXPR])};
@@ -195,8 +234,10 @@ int main() {
 			auto norm_ratio{to_norm(strtod(toks[NORMAL], nullptr))};
 			auto conc_ratio{to_conc(strtod(toks[CONCERNED], nullptr))};
 			auto ptype{to_peer_type(toks[PTYPE])};
-			auto & acc{groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)]};
-			acc(recall);
+			auto & acc1{groups_expr_values[make_tuple(dataset, norm_ratio, conc_ratio, ptype)]};
+			acc1(recall);
+			auto & acc2{alpha_baseline_expr_values[make_tuple(dataset, conc_ratio)]};
+			acc2(recall);
 		}
 			break;
 		case expr_t::slices: {
@@ -217,5 +258,6 @@ int main() {
 	output_min_plot(min_expr_values, baseline, random);
 	output_groups_plot(groups_expr_values);
 	output_alpha_plot(alpha_expr_values);
+	output_alpha_baseline_plot(alpha_expr_values, alpha_baseline_expr_values);
 	return 0;
 }
