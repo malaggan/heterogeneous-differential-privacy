@@ -55,7 +55,7 @@ void parse_args(int ac, char *av[]) {
 	p.add("dataset", 1);
 
 	po::store(po::command_line_parser(ac, av).options(cmdline_options).positional(p).run(), vm);
-	//po::store(po::parse_config_file<char>(".gossple", config_file_options), vm);
+	//po::store(po::parse_config_file<char>(".hdp", config_file_options), vm);
 	po::notify(vm);
 
 	if (vm.count("help")) {

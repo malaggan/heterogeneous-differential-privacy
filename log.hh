@@ -2,7 +2,7 @@
 #include <string>
 
 enum class log_type { OUT = 0, LOG = 1 };
-namespace gossple {
+namespace hdp {
 	extern bool log_redirected;
 }
 class logger {

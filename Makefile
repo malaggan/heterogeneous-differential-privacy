@@ -15,7 +15,7 @@ DEBUG:= -g0 #-ggdb3 -D_GLIBCXX_DEBUG #-fcheck-pointer-bounds
 src=$(wildcard *.cc)
 obj=$(patsubst %.cc,%.o,$(src))
 
-BIN := gossple
+BIN := hdp
 
 all: $(BIN) TAGS
 

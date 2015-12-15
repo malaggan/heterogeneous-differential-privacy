@@ -58,7 +58,7 @@ some(T&& t) {
 // --- find
 #include <boost/range/algorithm/find.hpp>
 // make find return maybe, instead of checking equality to end()
-namespace gossple {
+namespace hdp {
 	template <typename Range, typename T>
 	auto find(Range &r, T const &val) -> maybe<decltype(boost::find(r, val))> {
 		auto it = boost::find(r, val);

@@ -19,11 +19,11 @@ view_t& view_t::add(user_id_t u) {
 }
 
 auto view_t::get_by_id(user_id_t u) -> maybe<iterator> {
-	return gossple::find(*this, u); // NOTE: depends that equality for ventry is on ID
+	return hdp::find(*this, u); // NOTE: depends that equality for ventry is on ID
 }
 
 auto view_t::get_by_id(user_id_t u) const -> maybe<const_iterator> {
-	return gossple::find(*this, u);
+	return hdp::find(*this, u);
 }
 
 bool view_t::contains(user_id_t u) const {

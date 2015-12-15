@@ -20,7 +20,7 @@
 #include <iterator>
 std::string HEADER{"dataset,seed,user-id,user-class,expr,slices,min,unconcerned,normal,concerned,alpha,epsilon,recall"};
 
-namespace gossple {
+namespace hdp {
 	// these must be public so as to no be destructed (and hence, closed),
 	// before the application termiantes.
 	std::ofstream out, log;
@@ -113,8 +113,8 @@ int main(int argc, char *argv[]) {
 	// TODO create 8 processes at a time and synchronize them using an interprocess semaphor ?
 	parse_args(argc, argv);
 
-	if(vm.count("output")) { gossple::redirect("output", gossple::out, std::cout); gossple::out_redirected = true; }
-	if(vm.count("log"   )) { gossple::redirect("log"   , gossple::log, std::clog); gossple::log_redirected = true; }
+	if(vm.count("output")) { hdp::redirect("output", hdp::out, std::cout); hdp::out_redirected = true; }
+	if(vm.count("log"   )) { hdp::redirect("log"   , hdp::log, std::clog); hdp::log_redirected = true; }
 
 	static logger l{"main"};
 
@@ -152,9 +152,9 @@ int main(int argc, char *argv[]) {
 				l.log("File \"%s\" does not exist. Cannot read dataset. Quitting...", fname.c_str());
 				exit(1);
 			}
-			gossple::in = std::ifstream{fname};
-			std::cin.rdbuf(gossple::in.rdbuf());
-			gossple::in_redirected = true;
+			hdp::in = std::ifstream{fname};
+			std::cin.rdbuf(hdp::in.rdbuf());
+			hdp::in_redirected = true;
 
 			l.log("Reading input dataset from \"%s\"", fname.c_str());
 		} else
@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
 
 	if(vm["header"].as<bool>())
 		std::cout << HEADER << std::endl;
-	boost::interprocess::file_lock flock("/home/malaggan/gossple/results.csv");
+	boost::interprocess::file_lock flock("./results.csv");
 	flock.lock();
 	for(auto a : joined_peers)
 	{
@@ -220,9 +220,9 @@ int main(int argc, char *argv[]) {
 		std::cout << recall << std::endl;
 	}
 	std::cout << std::flush;
-	if(gossple::out_redirected) {
-		gossple::out.flush();
-		gossple::out.close();
+	if(hdp::out_redirected) {
+		hdp::out.flush();
+		hdp::out.close();
 	}
 	flock.unlock();
 
