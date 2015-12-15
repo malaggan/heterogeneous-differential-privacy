@@ -1,0 +1,15 @@
+* Heterogeneous Differential Privacy
+Implementation of the peer-to-peer simulation used for the experimental evaluation of the [[http://arxiv.org/abs/1504.06998][Heterogeneous Differential Privacy]] paper.
+
+** Acknowledgments
+The clustering protocol is based on the Gossple protocol due to Bertier, M., Frey, D., Guerraoui, R., Kermarrec, A-.M., Leroy, V., [[http://dx.doi.org/10.1007/978-3-642-16955-7_10][The Gossple Anonymous Social Network]], Middleware 2010, Volume 6452 of the series Lecture Notes in Computer Science pp 191--211.
+
+** Specifics
+This implementation is specific to the application of [[http://arxiv.org/abs/1504.06998][Heterogeneous Differential Privacy]] and thus may not implement features specific to Gossple, such as tag expansion.
+
+In particular, we implement [[http://dx.doi.org/10.1007/s10922-005-4441-x][Cyclon]] and [[http://dx.doi.org/10.1007/11549468_125][Vicinty]] overlay peer-to-peer network protocols, due to:
+  - Voulgaris, S., Gavidia, D., & Van Steen, M. (2005). [[http://dx.doi.org/10.1007/s10922-005-4441-x][Cyclon: Inexpensive membership management for unstructured p2p overlays]]. Journal of Network and Systems Management, 13(2), 197--217.
+  - Voulgaris, S., & Van Steen, M. (2005). [[http://dx.doi.org/10.1007/11549468_125][Epidemic-style management of semantic overlays for content-based searching]]. In Euro-Par 2005 Parallel Processing (pp. 1143--1152). Springer Berlin Heidelberg.
+
+** Be careful!
+We simulate a cycle-based peer-to-peer network, for experimental evaluation purposes, rather than for deployment purposes. For this implementation to provide differential privacy as intended, a cryptographic protocol must be put in place as the third chapter of my PhD [[http://www.theses.fr/2013REN1S154][thesis]] explains.
