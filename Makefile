@@ -5,7 +5,7 @@ CXX = g++ # /home/malaggan/opt/bin/g++
 #export SHELL := /usr/bin/bash
 #export PATH := /home/malaggan/opt/bin:$(PATH)
 CXXFLAGS:= -std=c++14 #-mmpx
-LDFLAGS := -lboost_program_options -lboost_filesystem -lboost_system #-lmpxwrappers
+LDFLAGS := -lboost_program_options -lboost_filesystem -lboost_system -lstdc++fs #-lmpxwrappers
 
 WARN := -Wextra -pedantic -Wall -Wold-style-cast -Wc++14-compat # -Werror
 OPT  := -O3 -march=native
