@@ -5,47 +5,47 @@
       %% naive 100%% -> hdp
       \nextgroupplot
       \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%1%) %%
-																															 (0.3,%2%) %%
-																															 (0.6,%3%) %%
-																															 (0.7,%4%) %%
-																															 (0.8,%5%) }; %%
-			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%6%) %%
-																															 (0.3,%7%) %%
-																															 (0.6,%8%) %%
-																															 (0.7,%9%) %%
-																															 (0.8,%10%) }; %%
+                                                               (0.3,%2%) %%
+                                                               (0.6,%3%) %%
+                                                               (0.7,%4%) %%
+                                                               (0.8,%5%) }; %%
+      \addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%6%) %%
+                                                               (0.3,%7%) %%
+                                                               (0.6,%8%) %%
+                                                               (0.7,%9%) %%
+                                                               (0.8,%10%) }; %%
 %% DIGG
       \nextgroupplot
       \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%11%) %%
-																															 (0.3,%12%) %%
-																															 (0.6,%13%) %%
-																															 (0.7,%14%) %%
-																															 (0.8,%15%) }; %%
-			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%16%) %%
-																															 (0.3,%17%) %%
-																															 (0.6,%18%) %%
-																															 (0.7,%19%) %%
-																															 (0.8,%20%) }; %%
+                                                               (0.3,%12%) %%
+                                                               (0.6,%13%) %%
+                                                               (0.7,%14%) %%
+                                                               (0.8,%15%) }; %%
+      \addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%16%) %%
+                                                               (0.3,%17%) %%
+                                                               (0.6,%18%) %%
+                                                               (0.7,%19%) %%
+                                                               (0.8,%20%) }; %%
 %% DELICIOUS
       \nextgroupplot[legend columns=5, legend entries={Naive with $\alpha=100\%%$;,HDP}, legend to name=alpha_baseline_plots_legend] %%
       \addplot[mark=o       ,line width=1pt] plot coordinates{ (0.2,%21%) %%
-																															 (0.3,%22%) %%
-																															 (0.6,%23%) %%
-																															 (0.7,%24%) %%
-																															 (0.8,%25%) }; %%
-			\addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%26%) %%
-																															 (0.3,%27%) %%
-																															 (0.6,%28%) %%
-																															 (0.7,%29%) %%
-																															 (0.8,%30%) }; %%
+                                                               (0.3,%22%) %%
+                                                               (0.6,%23%) %%
+                                                               (0.7,%24%) %%
+                                                               (0.8,%25%) }; %%
+      \addplot[mark=square  ,line width=1pt] plot coordinates{ (0.2,%26%) %%
+                                                               (0.3,%27%) %%
+                                                               (0.6,%28%) %%
+                                                               (0.7,%29%) %%
+                                                               (0.8,%30%) }; %%
     \end{groupplot}
 
-		\draw (alpha baseline plots c1r1.north)+(0,10pt) node {Survey};
+    \draw (alpha baseline plots c1r1.north)+(0,10pt) node {Survey};
     \draw (alpha baseline plots c2r1.north)+(0,10pt) node {Digg};
     \draw (alpha baseline plots c3r1.north)+(0,10pt) node {Delicious};
 
   \end{tikzpicture}
   \ref{alpha_baseline_plots_legend}
-  \caption{xxx}
+  \caption{The average recall obtained for the \textsc{Stretching Mechanism} versus the Na\"ive baseline in which 100\% of the \textsc{Fundamentalists} are removed and the remaining users are given homogeneous privacy guarantee equivalent to the preference of \textsc{Pragmatists}.}
   \label{fig:het_priv_naive_alpha_baseline}
 \end{figure}
