@@ -6,57 +6,62 @@
 
 // view entry
 struct ventry {
-	constexpr ventry()                                 : id{}  , age{}    {} // FIXME: do we need a default ctor?
-	constexpr explicit ventry(user_id_t id, age_t age) : id{id}, age{age} {}
-	using cref = ventry const&;
+    constexpr ventry() : id{},
+                         age{} {}// FIXME: do we need a default ctor?
+    constexpr explicit ventry(user_id_t id, age_t age) : id{id},
+                                                         age{age} {}
+    using cref = ventry const&;
 
-	// --- Comparison operators
-	// Equivalence depends on ID only, while comparison depends on age only.
-	constexpr bool operator==(cref other) const {return  id == other.id  ; }
-	constexpr bool operator!=(cref other) const {return  id != other.id  ; }
+    // --- Comparison operators
+    // Equivalence depends on ID only, while comparison depends on age only.
+    constexpr bool operator==(cref other) const { return id == other.id; }
+    constexpr bool operator!=(cref other) const { return id != other.id; }
 
-	constexpr bool operator< (cref other) const {return age <  other.age ; }
-	constexpr bool operator<=(cref other) const {return age <= other.age ; }
-	constexpr bool operator> (cref other) const {return age >  other.age ; }
-	constexpr bool operator>=(cref other) const {return age >= other.age ; }
+    constexpr bool operator<(cref other) const { return age < other.age; }
+    constexpr bool operator<=(cref other) const { return age <= other.age; }
+    constexpr bool operator>(cref other) const { return age > other.age; }
+    constexpr bool operator>=(cref other) const { return age >= other.age; }
 
-	// ---  Hashing (for unordered_set). Depend on ID only, since no duplicates are allowed. TODO For correctness, when two ventry's collide in a set, the maximum age should be taken. This is outside of the scope of this class and should be handled in the container.
-	struct hash {
-		constexpr std::size_t operator()(cref view_entry) const {
-			return view_entry.id;
-		}
-	};
+    // ---  Hashing (for unordered_set). Depend on ID only, since no duplicates are allowed. TODO For correctness, when two ventry's collide in a set, the maximum age should be taken. This is outside of the scope of this class and should be handled in the container.
+    struct hash {
+        constexpr std::size_t operator()(cref view_entry) const {
+            return view_entry.id;
+        }
+    };
 
-	// --- Key equality (for unordered_set)
-	struct key_eq {
-		constexpr bool operator()(cref a, cref b) const {
-			return a.id == b.id;
-		}
-	};
+    // --- Key equality (for unordered_set)
+    struct key_eq {
+        constexpr bool operator()(cref a, cref b) const {
+            return a.id == b.id;
+        }
+    };
 
-	// --- Methods
+    // --- Methods
 
-	constexpr ventry& reset_age() { age = 0; return *this; }
+    constexpr ventry& reset_age() {
+        age = 0;
+        return *this;
+    }
 
-	// age is the age of the user since he joined the network, not his
-	// age in the view
-	constexpr ventry const& update_age(cref other) const { /* why const ? [1] */
-		age = std::max(age, other.age);
-		return *this;
-	}
+    // age is the age of the user since he joined the network, not his
+    // age in the view
+    constexpr ventry const& update_age(cref other) const { /* why const ? [1] */
+        age = std::max(age, other.age);
+        return *this;
+    }
 
-	constexpr void operator++(int) const { age++; }
+    constexpr void operator++(int) const { age++; }
 
-	user_id_t     id;
-	mutable age_t age;
+    user_id_t     id;
+    mutable age_t age;
 };
 
 // --- Convenience
 namespace helpers {
-	auto map_ids = boost::adaptors::transformed([](ventry const &a){return a.id;}); // TODO: use constexpr accessor mem_fn
+auto map_ids = boost::adaptors::transformed([](ventry const& a) { return a.id; });// TODO: use constexpr accessor mem_fn
 }
 
-constexpr inline bool operator==(ventry::cref v, user_id_t id) {return  v.id == id; }
+constexpr inline bool operator==(ventry::cref v, user_id_t id) { return v.id == id; }
 
 // [1] generates an error since set entires are immutable, iterator and const_iterator are both constant iterators [2]
 // Must make hash and equality depend only in the key (the id).

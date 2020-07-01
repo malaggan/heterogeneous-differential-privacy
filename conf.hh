@@ -6,9 +6,9 @@ constexpr auto cycles   = 20u;
 
 // --- Ints
 #include <cstdint>
-using user_id_t         = uint_fast32_t;
-using item_id_t         = uint_fast32_t;
-using age_t             = uint_fast32_t;
+using user_id_t = uint_fast32_t;
+using item_id_t = uint_fast32_t;
+using age_t     = uint_fast32_t;
 
 // --- Option
 #include "option.hh"
@@ -16,5 +16,5 @@ using age_t             = uint_fast32_t;
 // --- User and user list
 #include <unordered_map>
 class user;
-using all_t     = std::vector<user*>; // change here must refelct in dataset.hh
+using all_t = std::vector<user*>;// change here must refelct in dataset.hh
 extern all_t all_peers;

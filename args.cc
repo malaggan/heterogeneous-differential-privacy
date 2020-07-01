@@ -2,12 +2,13 @@
 #include <iostream>
 #include <string>
 
-po::variables_map vm; // global, all code can access it to retreive options
+po::variables_map vm;// global, all code can access it to retreive options
 using namespace std;
 extern double epsilon;
-void parse_args(int ac, char *av[]) {
-	// cmdline args: epsilon, groups-or-slices, if slices ( num slices, min epsilon ),
+void          parse_args(int ac, char *av[]) {
+    // cmdline args: epsilon, groups-or-slices, if slices ( num slices, min epsilon ),
 
+    // clang-format off
 	po::options_description help("Help options");
 	help.add_options()
     ("help", "produce help message")
@@ -53,13 +54,14 @@ void parse_args(int ac, char *av[]) {
 
 	po::positional_options_description p;
 	p.add("dataset", 1);
+    // clang-format on
 
-	po::store(po::command_line_parser(ac, av).options(cmdline_options).positional(p).run(), vm);
-	//po::store(po::parse_config_file<char>(".hdp", config_file_options), vm);
-	po::notify(vm);
+    po::store(po::command_line_parser(ac, av).options(cmdline_options).positional(p).run(), vm);
+    //po::store(po::parse_config_file<char>(".hdp", config_file_options), vm);
+    po::notify(vm);
 
-	if (vm.count("help")) {
-    cout << cmdline_options << "\n";
-    exit(1);
-	}
+    if (vm.count("help")) {
+        cout << cmdline_options << "\n";
+        exit(1);
+    }
 }

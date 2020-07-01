@@ -10,4 +10,6 @@
 
 user::set_t load_dataset();
 
-struct item : public std::pair<user_id_t, item_id_t> { using std::pair<user_id_t, item_id_t>::pair; };
+struct item : public std::pair<user_id_t, item_id_t> {
+    using std::pair<user_id_t, item_id_t>::pair;
+};

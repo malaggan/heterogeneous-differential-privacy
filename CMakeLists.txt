@@ -6,7 +6,6 @@ set(CMAKE_C_COMPILER /usr/local/bin/gcc-9)
 project(HeterogeneousDifferentialPrivacy)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
 set(CONAN_SYSTEM_INCLUDES ON)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
