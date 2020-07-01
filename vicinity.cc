@@ -42,7 +42,7 @@ auto user::vicinity_send_gossip(maybe<user_id_t> dest_opt) -> std::tuple<user*, 
 	// AGGRESSIVELY BIASED:
 	// Select the viewSize/2 items of nodes semantically closest to the selected peer
 	//   from the VICINITY view and the CYCLON view
-	user_id_t p;
+	user_id_t p = -1;
 	if(dest_opt) p = dest_opt.value();
 	else {
 		auto oldest_vicinity_peer = vicinity_view.get_oldest_peer();
@@ -80,4 +80,5 @@ std::string user::cls() const {
 	case privacy_class::BASELINE:            return "BASELINE";
 	default : assert(false);
 	}
+    __builtin_unreachable();
 }

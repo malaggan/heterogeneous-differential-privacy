@@ -1,14 +1,14 @@
 #pragma once
 
-#include <experimental/optional>
+#include <optional>
 #include <functional> // for std::function
 
 template <typename T>
-using base_maybe = std::experimental::optional<T>;
-constexpr std::experimental::nullopt_t none { std::experimental::nullopt_t::_Construct::_Token };
+using base_maybe = std::optional<T>;
+constexpr std::nullopt_t none { std::nullopt_t::_Construct::_Token };
 
 template<typename T>
-//using maybe = std::experimental::optional<T>;
+//using maybe = std::optional<T>;
 class maybe : public base_maybe<T> {
 	using base_maybe<T>::base_maybe; // inherit constructors
 public:
@@ -81,11 +81,11 @@ namespace hdp {
 // not a built-in operator.
 
 // SFINAE to enable only on arithmetic types (or perhaps on any type with operator+ ?)
-#include <experimental/type_traits>
+#include <type_traits>
 #define maybe_lift_arith(op) template <typename T1, typename T2>                                  \
 std::enable_if_t<                                                                                 \
-     std::experimental::is_arithmetic_v<T1> and                                                   \
-	   std::experimental::is_arithmetic_v<T2>,                                                      \
+     std::is_arithmetic_v<T1> and                                                   \
+	   std::is_arithmetic_v<T2>,                                                      \
 maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1> a, maybe<T2> b)	\
 {                                                                                                 \
 	if(a && b)                                                                                      \
@@ -94,8 +94,8 @@ maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1>
 }                                                                                                 \
 template <typename T1, typename T2>                                                               \
 std::enable_if_t<                                                                                 \
-     std::experimental::is_arithmetic_v<T1> and                                                   \
-	   std::experimental::is_arithmetic_v<T2>,                                                      \
+     std::is_arithmetic_v<T1> and                                                   \
+	   std::is_arithmetic_v<T2>,                                                      \
 maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1> a, T2 b)         \
 {                                                                                                 \
 	if(a)                                                                                           \
@@ -104,8 +104,8 @@ maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(maybe<T1>
 }                                                                                                 \
 template <typename T1, typename T2>                                                               \
 std::enable_if_t<                                                                                 \
-     std::experimental::is_arithmetic_v<T1> and                                                   \
-	   std::experimental::is_arithmetic_v<T2>,                                                      \
+     std::is_arithmetic_v<T1> and                                                   \
+	   std::is_arithmetic_v<T2>,                                                      \
 maybe<decltype(std::declval<T1>() op std::declval<T2>())>> operator op(T1 a, maybe<T2> b)         \
 {                                                                                                 \
 	if(b)                                                                                           \

@@ -5,12 +5,6 @@
 #include <algorithm>
 #include <iterator>
 #include <vector>
-#ifdef __GNUC__
-#  include <features.h>
-#  if __GNUC_PREREQ(5,0)
-#    include <experimental/algorithm>
-#  endif
-#endif
 
 #include "random.hh"
 extern std::default_random_engine rng;
@@ -42,17 +36,9 @@ struct random_sample {
 			return ReturnType{*begin};
 		}
 
-#ifdef __cpp_lib_experimental_sample // Library fundamentals TS
 		std::vector<T> ret(sample_size);
-		std::experimental::sample(begin, end, std::begin(ret), sample_size, rng);
+		std::sample(begin, end, std::begin(ret), sample_size, rng);
 		return ReturnType{std::begin(ret), std::end(ret)};
-#else
-		// copy the container so we can shuffle it
-		// shuffle needs a random-access iterator, so we use std::vector here
-		std::vector<T> ret{begin, end};
-		std::shuffle(std::begin(ret), std::end(ret), rng);
-		ret.resize(sample_size);
-		return ReturnType{std::begin(ret), std::end(ret)};
-#endif
+
 	}
 };

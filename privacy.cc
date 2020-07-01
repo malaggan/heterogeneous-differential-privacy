@@ -94,6 +94,7 @@ pc_limits(privacy_class pc) {
 	default: assert(false);
 	}
 	assert(false);
+	__builtin_unreachable();
 }
 
 std::vector<double> user::

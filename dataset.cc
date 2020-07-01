@@ -157,7 +157,7 @@ user::set_t load_dataset()
 		all_peers[current_id - 1]->add_item(item);
 	}
 	assert(joined_peers.size() == all_peers.size());
-	l.log("Effectively loaded %lu peers out of %lu total", all_peers.size(), user_count);
+	l.log("Effectively loaded %lu peers out of %u total", all_peers.size(), user_count);
 	l.log("Loading finished");
 	return joined_peers;
 }

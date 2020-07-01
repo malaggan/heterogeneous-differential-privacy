@@ -167,6 +167,7 @@ int main(int argc, char *argv[]) {
 
 	for(auto i : boost::counting_range(0u, cycles))
 	{
+        (void)i; // unused
 		current_cycle++;
 
 		//boost::for_each(joined_peers, std::mem_fn(&user::vicinity_do_gossip));

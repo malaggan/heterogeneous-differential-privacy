@@ -4,16 +4,20 @@ view_t& view_t::add(user_id_t u) {
 	// age is monotonic, thus it is guaranteed that the existing ventry
 	// is older than or equal to 0. Therefore, we do not need to update
 	// it if it exists.
-	auto s = size();
+#ifndef NDEBUG
+    auto s = size();
+#endif
 	if(!contains(u)) {
 		view_base::emplace(u, 0);
 		assert(size() == s + 1);
 	} else {
+#ifndef NDEBUG
 		auto p = get_by_id(u);
 		assert(p);
 		auto it = p.value();
 		assert(it != end());
 		assert(size() > 0);
+#endif
 	}
 	return *this;
 }
